@@ -1,0 +1,92 @@
+#pragma once
+#include "imgui\\imgui.h"
+#include "imgui\\imgui_impl_win32.h"
+#include "imgui\\imgui_impl_dx11.h"
+#include "Window.h"
+#include "GraphicsEngine.h"
+#include "SwapChain.h"
+#include "DeviceContext.h"
+#include <d3d11.h>
+#include <tchar.h>
+#include <d3d11.h>
+#include <dxgi.h>
+#include <exception>
+#include <directxmath.h>
+
+class App : public Window
+{
+public:
+	App();
+	~App();
+	// Inherited via Window
+	virtual void onCreate() override;
+	virtual void onUpdate() override;
+	virtual void onDestroy() override;
+	virtual void onFocus() override;
+	virtual void onKillFocus() override;
+	virtual void onSize() override;
+public:
+	void render();
+	void update();
+	void updateModel();
+	void updateCamera();
+	void updateSkybox();
+	void CreateViewAndPerspective();
+private:
+	GraphicsEngine graphicsEngine;
+	IDXGISwapChain* g_pSwapChain = nullptr;
+	ID3D11Device* g_pd3dDevice = nullptr;
+	ID3D11DeviceContext* g_pd3dDeviceContext = nullptr;
+	ID3D11Buffer* dx_index_buffer = nullptr;
+	ID3D11Buffer* dx_vertex_buffer = nullptr;
+	ID3D11Buffer* dx_constant_buffer = nullptr;
+	ID3D11InputLayout* vertexLayout = nullptr;
+	ID3D11DepthStencilView* depth_stencil_view = nullptr;
+private:
+	SwapChain* swapChain = nullptr;
+	DeviceContext* deviceContext = nullptr;
+	const IndexBuffer* index_buffer = nullptr;
+	const VertexBuffer* vertex_buffer = nullptr;
+	ConstantBuffer* constant_buffer = nullptr;
+	VertexShader* vertex_shader = nullptr;
+	PixelShader* pixel_shader = nullptr;
+private:
+
+	bool g_SwapChainOccluded = false;
+
+	UINT g_ResizeWidth = 0, g_ResizeHeight = 0;
+
+	ID3D11RenderTargetView* g_mainRenderTargetView = nullptr;
+
+	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+private:
+	float old_delta;
+	float new_delta;
+	float delta_time;
+
+	float delta_pos;
+	float delta_scale;
+	float delta_rot;
+
+	UINT m_frame = 0;
+	DirectX::XMFLOAT4X4 view;
+	DirectX::XMFLOAT4X4 proj;
+
+	float m_rot_x = 0.0f;
+	float m_rot_y = 0.0f;
+	float m_rot_z = 0.0f;
+
+	float light_rot_y = 0.0f;
+
+	float forward = 0.0f;
+	float rightward = 0.0f;
+
+	bool face_culling = true;
+
+	float m_time = 0.0f;
+	float m_light_radius = 5.0f;
+
+	bool m_play_state = false;
+	bool m_fullscreen_state = false;
+};
+
