@@ -3,7 +3,7 @@
 #include "Vector4D.h"
 #include "Vector2D.h"
 #include "Matrix4x4.h"
-#include <io.h>
+#include <iostream>
 #include <d3dcompiler.h>
 #include <fstream>
 #include <vector>
@@ -19,23 +19,23 @@ struct Constant
 };
 
 Vertex vertices[] = {
-    { Vector3D(-1.0f, -1.0f, -1.0f),    Vector4D(0.0f, 0.0f, 0.0f, 0.0f) },
-    { Vector3D(-1.0f,  1.0f, -1.0f),    Vector4D(0.875f, 0.875f, 0.875f, 1.0f) },
-    { Vector3D(1.0f,  1.0f, -1.0f),     Vector4D(0.75f, 0.75f, 0.75f, 1.0f) },
-    { Vector3D(1.0f, -1.0f, -1.0f),     Vector4D(0.625f, 0.625f, 0.625f, 1.0f) },
+    { Vector3D(-1.0f, -1.0f, -1.0f),    Vector4D(0.0f, 0.0f, 0.0f, 1.0f) },
+    { Vector3D(-1.0f,  1.0f, -1.0f),    Vector4D(0.0f, 0.0f, 0.0f, 1.0f) },
+    { Vector3D(1.0f,  1.0f, -1.0f),     Vector4D(0.0f, 0.0f, 0.0f, 1.0f) },
+    { Vector3D(1.0f, -1.0f, -1.0f),     Vector4D(0.6f, 0.6f, 0.6f, 1.0f) },
     { Vector3D(-1.0f, -1.0f,  1.0f),    Vector4D(0.5f, 0.5f, 0.5f, 1.0f) },
-    { Vector3D(-1.0f,  1.0f,  1.0f),    Vector4D(0.375f, 0.375f, 0.375f, 1.0f) },
+    { Vector3D(-1.0f,  1.0f,  1.0f),    Vector4D(0.3f, 0.3f, 0.3f, 1.0f) },
     { Vector3D(1.0f,  1.0f,  1.0f),     Vector4D(0.25f, 0.25f, 0.25f, 1.0f) },
-    { Vector3D(1.0f, -1.0f,  1.0f),     Vector4D(0.125f, 0.125f, 0.125f, 1.0f) },
+    { Vector3D(1.0f, -1.0f,  1.0f),     Vector4D(0.1f, 0.1f, 0.1f, 1.0f) },
 };
 
 UINT indices[] = {
-    0, 1, 2, 0, 2, 3,
-    4, 5, 6, 4, 6, 7,
-    0, 1, 5, 0, 5, 4,
-    1, 2, 6, 1, 6, 5,
-    2, 3, 7, 2, 7, 6,
-    3, 0, 4, 3, 4, 7
+    0, 1, 2,     0, 2, 3,
+    4, 5, 6,     4, 6, 7,
+    0, 1, 5,     0, 5, 4,
+    1, 2, 6,     1, 6, 5,
+    2, 3, 7,     2, 7, 6,
+    3, 0, 4,     3, 4, 7
 };
 
 App::App()
@@ -143,13 +143,21 @@ void App::onCreate()
     }
     // Create view and perspective matrices
     CreateViewAndPerspective();
+
+    D3D11_RASTERIZER_DESC rasterDesc;
+    ZeroMemory(&rasterDesc, sizeof(rasterDesc));
+    rasterDesc.FillMode = D3D11_FILL_SOLID;
+    rasterDesc.CullMode = D3D11_CULL_BACK;
+    rasterDesc.FrontCounterClockwise = false;
+    rasterDesc.DepthClipEnable = true;
+    ID3D11RasterizerState* rasterState;
+    g_pd3dDevice->CreateRasterizerState(&rasterDesc, &rasterState);
+    g_pd3dDeviceContext->RSSetState(rasterState);
 }
 
 void App::onUpdate()
 {
     // (Your code process and dispatch Win32 messages)
-    // Update the model transformation
-    updateModel();
     // Start the Dear ImGui frame
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -157,10 +165,13 @@ void App::onUpdate()
     ImGui::ShowDemoWindow(); // Show demo window! :)
     // Rendering
     render();
-
+    
     // (Your code clears your framebuffer, renders your other stuff etc.)
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+    
+    // Update the model transformation
+    updateModel();
 }
 
 void App::onDestroy()
@@ -168,6 +179,20 @@ void App::onDestroy()
     ImGui_ImplDX11_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
+
+    if (vertex_buffer) {
+        vertex_buffer->~VertexBuffer();
+    }
+    if (index_buffer) {
+        index_buffer->~IndexBuffer();
+    }
+
+    if (vertex_shader) {
+        vertex_shader->~VertexShader();
+    }
+    if (pixel_shader) {
+        pixel_shader->~PixelShader();
+    }
 
     graphicsEngine.release();
 
@@ -179,24 +204,21 @@ void App::onKillFocus() {}
 void App::onSize() {}
 
 void App::render() {
-    deviceContext->clearRenderTargetColor(graphicsEngine.swapChain, 1.0f, 1.0f, 1.0f, 1.0f);
+    deviceContext->clearRenderTargetColor(graphicsEngine.swapChain, 0.25f, 0.25f, 0.75f, 1.0f);
     deviceContext->clearDepthStencilView(depth_stencil_view);
-    g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView,depth_stencil_view);
+    g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, depth_stencil_view);
     deviceContext->setViewportSize(1280, 720);
     deviceContext->setVertexShader(vertex_shader);
     deviceContext->setPixelShader(pixel_shader);
     deviceContext->setVertexBuffer(vertex_buffer);
     deviceContext->setIndexBuffer(index_buffer);
 
-    ImVec2 cursorPos = ImGui::GetCursorPos(); // Get the cursor position
-    Vector3D translation(cursorPos.x, cursorPos.y, 0.0f); // Convert ImVec2 to Vector3D
-
     DirectX::XMMATRIX g_Player;
     // Initialize the world matrix
     g_Player = DirectX::XMMatrixIdentity();
     DirectX::XMMATRIX mRotate = DirectX::XMMatrixRotationZ(m_rot_z);
-    DirectX::XMMATRIX mTranslate = DirectX::XMMatrixTranslation(0.0f, 0.0f, 0.0f);
-    DirectX::XMMATRIX mScale = DirectX::XMMatrixScaling(1.0f, 1.0f, 1.0f);
+    DirectX::XMMATRIX mTranslate = DirectX::XMMatrixTranslation(0.0f, 0.0f, 1.0f);
+    DirectX::XMMATRIX mScale = DirectX::XMMatrixScaling(2.0f, 2.0f, 2.0f);
     g_Player = mScale * mRotate * mTranslate;
 
     // Combine with view and projection matrices
@@ -204,13 +226,14 @@ void App::render() {
     DirectX::XMMATRIX projMatrix = DirectX::XMLoadFloat4x4(&proj); // Load projection matrix
     DirectX::XMMATRIX worldViewProjMatrix = g_Player * viewMatrix * projMatrix; // Combine matrices
 
-
     Constant cb1;
     DirectX::XMStoreFloat4x4(&cb1.worldViewProj, DirectX::XMMatrixTranspose(worldViewProjMatrix));
-
     constant_buffer->update(deviceContext, &cb1);
 
-    deviceContext->drawIndexedTriangleList(ARRAYSIZE(indices),0,0);
+    deviceContext->setConstantBuffer(vertex_shader, constant_buffer);
+    deviceContext->setConstantBuffer(pixel_shader, constant_buffer);
+
+    deviceContext->drawIndexedTriangleList(ARRAYSIZE(indices), 0, 0);
 
     // Render ImGui UI
     ImGui::Render();
@@ -233,7 +256,6 @@ void App::updateModel() {
             )
         )
     );
-
     if (m_frame == MAXUINT)  m_frame = 0;
 }
 void App::updateCamera() {}
@@ -241,7 +263,7 @@ void App::updateSkybox() {}
 void App::CreateViewAndPerspective()
 {
     // Use DirectXMath to create view and perspective matrices.
-    DirectX::XMVECTOR eye = DirectX::XMVectorSet(0.0f, 0.7f, 1.5f, 0.0f);
+    DirectX::XMVECTOR eye = DirectX::XMVectorSet(-2.0f, 1.5f, 1.5f, 0.0f);
     DirectX::XMVECTOR at = DirectX::XMVectorSet(0.0f, -0.1f, 0.0f, 0.0f);
     DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 

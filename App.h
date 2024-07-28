@@ -69,8 +69,8 @@ private:
 	float delta_rot;
 
 	UINT m_frame = 0;
-	DirectX::XMFLOAT4X4 view;
-	DirectX::XMFLOAT4X4 proj;
+	DirectX::XMFLOAT4X4 view = {};
+	DirectX::XMFLOAT4X4 proj = {};
 
 	float m_rot_x = 0.0f;
 	float m_rot_y = 0.0f;

@@ -17,9 +17,7 @@ mono_crash.*
 *.pdb
 
 # ignore ALL files in ANY directory named .vs
-.vs/
-.vs/Simple3D/v17
-.vs/Simple3D/v17/ipch
+.vs/*
 
 # Libraries
 *.lib
