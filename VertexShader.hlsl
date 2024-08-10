@@ -1,6 +1,6 @@
 cbuffer ConstantBuffer : register(b0)
 {
-    matrix worldViewProj;
+    float4x4 worldViewProj;
 };
 
 struct VS_INPUT

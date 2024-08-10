@@ -32,6 +32,11 @@ public:
 	void updateCamera();
 	void updateSkybox();
 	void CreateViewAndPerspective();
+	void imgui_window_render_camera();
+	void imgui_window_render_position();
+	void imgui_window_render_rotation();
+	void imgui_window_render_scale();
+	void imgui_start_menu();
 private:
 	GraphicsEngine graphicsEngine;
 	IDXGISwapChain* g_pSwapChain = nullptr;
@@ -76,15 +81,30 @@ private:
 	float m_rot_y = 0.0f;
 	float m_rot_z = 0.0f;
 
+	float x, y, z = 0.0f;
+	
+	bool showWindowCamera = false;
+	bool showWindowPosition = false;
+	bool showWindowRotation = false;
+	bool showWindowScale = false;
+	bool showMenu = true;
+	bool gameStarted = false;
+	bool quit_game = false;
+
 	float light_rot_y = 0.0f;
 
 	float forward = 0.0f;
 	float rightward = 0.0f;
+	float upward = 0.0f;
 
 	bool face_culling = true;
 
 	float m_time = 0.0f;
 	float m_light_radius = 5.0f;
+
+	float m_scale_x = 1.0f;
+	float m_scale_y = 1.0f;
+	float m_scale_z = 1.0f;
 
 	bool m_play_state = false;
 	bool m_fullscreen_state = false;

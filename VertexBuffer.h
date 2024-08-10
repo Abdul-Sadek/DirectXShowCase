@@ -14,9 +14,9 @@ public:
 private:
 	UINT m_size_vertex;
 	UINT m_size_list;
+	ID3D11InputLayout* input_layout; //input layout
 private:
 	ID3D11Buffer* output_buffer; //output buffer
-	ID3D11InputLayout* input_layout; //input layout
 	ID3D11Device* device;
 private:
 	friend class DeviceContext;

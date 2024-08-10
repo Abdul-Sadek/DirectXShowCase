@@ -4,7 +4,14 @@ struct PS_INPUT
     float4 color : COLOR;
 };
 
-float4 main(PS_INPUT input) : SV_TARGET
+struct PSOutput
 {
-    return input.color;
+    float4 color : SV_Target0;
+};
+
+PSOutput main(PS_INPUT input)
+{
+    PSOutput output = (PSOutput) 0;
+    output.color = input.color;
+    return output;
 }

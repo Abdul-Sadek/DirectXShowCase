@@ -10,7 +10,7 @@
 
 
 struct Vertex {
-    Vector3D position;
+    Vector4D position;
     Vector4D color;
 };
 struct Constant
@@ -19,14 +19,14 @@ struct Constant
 };
 
 Vertex vertices[] = {
-    { Vector3D(-1.0f, -1.0f, -1.0f),    Vector4D(0.0f, 0.0f, 0.0f, 1.0f) },
-    { Vector3D(-1.0f,  1.0f, -1.0f),    Vector4D(0.0f, 0.0f, 0.0f, 1.0f) },
-    { Vector3D(1.0f,  1.0f, -1.0f),     Vector4D(0.0f, 0.0f, 0.0f, 1.0f) },
-    { Vector3D(1.0f, -1.0f, -1.0f),     Vector4D(0.6f, 0.6f, 0.6f, 1.0f) },
-    { Vector3D(-1.0f, -1.0f,  1.0f),    Vector4D(0.5f, 0.5f, 0.5f, 1.0f) },
-    { Vector3D(-1.0f,  1.0f,  1.0f),    Vector4D(0.3f, 0.3f, 0.3f, 1.0f) },
-    { Vector3D(1.0f,  1.0f,  1.0f),     Vector4D(0.25f, 0.25f, 0.25f, 1.0f) },
-    { Vector3D(1.0f, -1.0f,  1.0f),     Vector4D(0.1f, 0.1f, 0.1f, 1.0f) },
+    { Vector4D(-1.0f, -1.0f, -1.0f, 1.0f),    Vector4D(0.75f, 0.75f, 0.0f, 1.0f) },
+    { Vector4D(-1.0f,  1.0f, -1.0f, 1.0f),    Vector4D(0.75f, 0.0f, 0.75f, 1.0f) },
+    { Vector4D(1.0f,  1.0f, -1.0f, 1.0f),     Vector4D(0.0f, 0.75f, 0.75f, 1.0f) },
+    { Vector4D(1.0f, -1.0f, -1.0f, 1.0f),     Vector4D(0.75f, 0.0f, 0.0f, 1.0f) },
+    { Vector4D(-1.0f, -1.0f,  1.0f, 1.0f),    Vector4D(0.0f, 0.75f, 0.0f, 1.0f) },
+    { Vector4D(-1.0f,  1.0f,  1.0f, 1.0f),    Vector4D(0.0f, 0.0f, 0.75f, 1.0f) },
+    { Vector4D(1.0f,  1.0f,  1.0f, 1.0f),     Vector4D(0.75f, 0.75f, 0.75f, 1.0f) },
+    { Vector4D(1.0f, -1.0f,  1.0f, 1.0f),     Vector4D(0.75f, 0.75f, 0.75f, 1.0f) },
 };
 
 UINT indices[] = {
@@ -57,8 +57,8 @@ std::vector<char> LoadShader(const std::wstring& filename) {
 
 void App::onCreate()
 {
-    Window::onCreate();
-
+    Window::onCreate();    
+    graphicsEngine.create();
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -116,22 +116,10 @@ void App::onCreate()
         IMGUI_DEBUG_LOG("Failed to create Index buffer: %s", e.what());
         return;
     }
-
-    // Set the buffers in the device context
-    try {
-        deviceContext->setVertexBuffer(vertex_buffer);
-        IMGUI_DEBUG_LOG("Vertex buffer set successfully");
-        deviceContext->setIndexBuffer(index_buffer);
-        IMGUI_DEBUG_LOG("Index buffer set successfully");
-    }
-    catch (const std::exception& e) {
-        IMGUI_DEBUG_LOG("Failed to set Vertex and Index buffers: %s", e.what());
-    }
     //create the constant buffer
     Constant c;
     constant_buffer = new ConstantBuffer(&c, sizeof(Constant), g_pd3dDevice);
-    deviceContext->setConstantBuffer(vertex_shader, constant_buffer);
-    deviceContext->setConstantBuffer(pixel_shader, constant_buffer);
+    
 
     // Setup Platform/Renderer backends
     if (!ImGui_ImplWin32_Init(hwnd)) {
@@ -141,18 +129,38 @@ void App::onCreate()
     if (!ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext)) {
         throw std::exception("Failed to initialize ImGui DX11 backend");
     }
+    deviceContext->setViewportSize(1280, 720);
+    deviceContext->setVertexBuffer(vertex_buffer);
+    deviceContext->setIndexBuffer(index_buffer);
+    
+
+    /*D3D11_BLEND_DESC blend_desc;
+    blend_desc.AlphaToCoverageEnable = FALSE;
+    blend_desc.IndependentBlendEnable = FALSE;
+    blend_desc.RenderTarget[0].BlendEnable = TRUE;
+    blend_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+    blend_desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    blend_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    blend_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    blend_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+    blend_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    ID3D11BlendState* blendstate;
+    g_pd3dDevice->CreateBlendState(&blend_desc,&blendstate);
+    float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    UINT sampleMask = 0xffffffff;
+    g_pd3dDeviceContext->OMSetBlendState(blendstate, blendFactor, sampleMask);*/
+
+    deviceContext->setVertexShader(vertex_shader);
+    deviceContext->setPixelShader(pixel_shader);
+    deviceContext->setConstantBuffer(vertex_shader, constant_buffer);
+    deviceContext->setConstantBuffer(pixel_shader, constant_buffer);
+
+
     // Create view and perspective matrices
     CreateViewAndPerspective();
 
-    D3D11_RASTERIZER_DESC rasterDesc;
-    ZeroMemory(&rasterDesc, sizeof(rasterDesc));
-    rasterDesc.FillMode = D3D11_FILL_SOLID;
-    rasterDesc.CullMode = D3D11_CULL_BACK;
-    rasterDesc.FrontCounterClockwise = false;
-    rasterDesc.DepthClipEnable = true;
-    ID3D11RasterizerState* rasterState;
-    g_pd3dDevice->CreateRasterizerState(&rasterDesc, &rasterState);
-    g_pd3dDeviceContext->RSSetState(rasterState);
+    
 }
 
 void App::onUpdate()
@@ -162,16 +170,55 @@ void App::onUpdate()
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
-    ImGui::ShowDemoWindow(); // Show demo window! :)
-    // Rendering
-    render();
-    
+    //ImGui::ShowDemoWindow(); // Show demo window! :)
+    if (showMenu) {
+        imgui_start_menu();
+    }
+    if (gameStarted) {
+        //camera view window
+        if (ImGui::IsKeyReleased(ImGuiKey_C)) {
+            showWindowCamera = !showWindowCamera; // toggle the window visibility
+        }
+        if (showWindowCamera) {
+            imgui_window_render_camera();
+        }
+        //position window
+        if (ImGui::IsKeyReleased(ImGuiKey_P)) {
+            showWindowPosition = !showWindowPosition; // toggle the window visibility
+        }
+        if (showWindowPosition) {
+            imgui_window_render_position();
+        }
+        //rotation window
+        if (ImGui::IsKeyReleased(ImGuiKey_R)) {
+            showWindowRotation = !showWindowRotation; // toggle the window visibility
+        }
+        if (showWindowRotation) {
+            imgui_window_render_rotation();
+        }
+        //scaling window
+        if (ImGui::IsKeyReleased(ImGuiKey_Z)) {
+            showWindowScale = !showWindowScale; // toggle the window visibility
+        }
+        if (showWindowScale) {
+            imgui_window_render_scale();
+        }
+
+        // Rendering
+        render();
+    }
     // (Your code clears your framebuffer, renders your other stuff etc.)
+    // Rendering ImGui
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+    // Present the frame
+    g_pSwapChain->Present(1, 0);
+
+    if (quit_game || ImGui::IsKeyReleased(ImGuiKey_Escape)) {
+        onDestroy();
+    }
     
-    // Update the model transformation
-    updateModel();
 }
 
 void App::onDestroy()
@@ -181,17 +228,17 @@ void App::onDestroy()
     ImGui::DestroyContext();
 
     if (vertex_buffer) {
-        vertex_buffer->~VertexBuffer();
+        delete vertex_buffer;
     }
     if (index_buffer) {
-        index_buffer->~IndexBuffer();
+        delete index_buffer;
     }
 
     if (vertex_shader) {
-        vertex_shader->~VertexShader();
+        delete vertex_shader;
     }
     if (pixel_shader) {
-        pixel_shader->~PixelShader();
+        delete pixel_shader;
     }
 
     graphicsEngine.release();
@@ -204,68 +251,70 @@ void App::onKillFocus() {}
 void App::onSize() {}
 
 void App::render() {
+
     deviceContext->clearRenderTargetColor(graphicsEngine.swapChain, 0.25f, 0.25f, 0.75f, 1.0f);
     deviceContext->clearDepthStencilView(depth_stencil_view);
     g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, depth_stencil_view);
-    deviceContext->setViewportSize(1280, 720);
-    deviceContext->setVertexShader(vertex_shader);
-    deviceContext->setPixelShader(pixel_shader);
-    deviceContext->setVertexBuffer(vertex_buffer);
-    deviceContext->setIndexBuffer(index_buffer);
 
+    if (ImGui::IsKeyPressed(ImGuiKey_D)) {
+        forward += 1.0f;
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_A)) {
+        forward -= 1.0f;
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_W)) {
+        rightward += 1.0f;
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_S)) {
+        rightward -= 1.0f;
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) {
+        upward += 1.0f;
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
+        upward -= 1.0f;
+    }
     DirectX::XMMATRIX g_Player;
     // Initialize the world matrix
     g_Player = DirectX::XMMatrixIdentity();
-    DirectX::XMMATRIX mRotate = DirectX::XMMatrixRotationZ(m_rot_z);
-    DirectX::XMMATRIX mTranslate = DirectX::XMMatrixTranslation(0.0f, 0.0f, 1.0f);
-    DirectX::XMMATRIX mScale = DirectX::XMMatrixScaling(2.0f, 2.0f, 2.0f);
+    DirectX::XMMATRIX mRotate = DirectX::XMMatrixRotationRollPitchYaw(m_rot_y,m_rot_x,m_rot_z);
+    DirectX::XMMATRIX mTranslate = DirectX::XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+    DirectX::XMMATRIX mScale = DirectX::XMMatrixScaling(m_scale_x, m_scale_y, m_scale_z);
     g_Player = mScale * mRotate * mTranslate;
 
-    // Combine with view and projection matrices
-    DirectX::XMMATRIX viewMatrix = DirectX::XMLoadFloat4x4(&view); // Load view matrix
+    DirectX::XMVECTOR eye = DirectX::XMVectorSet(5.0f + rightward, 5.0f + upward, 2.5f + forward, 1.0f);
+    DirectX::XMVECTOR at = DirectX::XMVectorSet(1.5f, 1.5f, 1.5f, 1.0f);
+    DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
+
+    DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixLookAtRH(eye, at, up);
     DirectX::XMMATRIX projMatrix = DirectX::XMLoadFloat4x4(&proj); // Load projection matrix
-    DirectX::XMMATRIX worldViewProjMatrix = g_Player * viewMatrix * projMatrix; // Combine matrices
+    DirectX::XMMATRIX worldViewProjMatrix = DirectX::XMMatrixIdentity();
+    
+    mRotate = DirectX::XMMatrixRotationRollPitchYaw(m_rot_y, m_rot_x, m_rot_z);
+    mTranslate = DirectX::XMMatrixTranslation(x, y, z);
+    mScale = DirectX::XMMatrixScaling(m_scale_x, m_scale_y, m_scale_z);
+    g_Player = mScale * mRotate * mTranslate;
+
+    worldViewProjMatrix = g_Player * viewMatrix * projMatrix; // Combine matrices
 
     Constant cb1;
     DirectX::XMStoreFloat4x4(&cb1.worldViewProj, DirectX::XMMatrixTranspose(worldViewProjMatrix));
     constant_buffer->update(deviceContext, &cb1);
 
-    deviceContext->setConstantBuffer(vertex_shader, constant_buffer);
-    deviceContext->setConstantBuffer(pixel_shader, constant_buffer);
-
     deviceContext->drawIndexedTriangleList(ARRAYSIZE(indices), 0, 0);
 
-    // Render ImGui UI
-    ImGui::Render();
-    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
-    g_pSwapChain->Present(1, 0);
 }
 
 void App::update() {}
-void App::updateModel() {
-    // Rotate the cube 1 degree per frame.
-    Constant cb;
-    DirectX::XMStoreFloat4x4(
-        &cb.worldViewProj,
-        DirectX::XMMatrixTranspose(
-            DirectX::XMMatrixRotationY(
-                DirectX::XMConvertToRadians(
-                    (float)m_frame++
-                )
-            )
-        )
-    );
-    if (m_frame == MAXUINT)  m_frame = 0;
-}
+void App::updateModel() {}
 void App::updateCamera() {}
 void App::updateSkybox() {}
 void App::CreateViewAndPerspective()
 {
     // Use DirectXMath to create view and perspective matrices.
-    DirectX::XMVECTOR eye = DirectX::XMVectorSet(-2.0f, 1.5f, 1.5f, 0.0f);
-    DirectX::XMVECTOR at = DirectX::XMVectorSet(0.0f, -0.1f, 0.0f, 0.0f);
-    DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    DirectX::XMVECTOR eye = DirectX::XMVectorSet(5.0f, 5.0f, 2.5f, 1.0f);
+    DirectX::XMVECTOR at = DirectX::XMVectorSet(1.5f, 1.5f, 1.5f, 1.0f);
+    DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
     DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixLookAtRH(eye, at, up);
     DirectX::XMStoreFloat4x4(&view, viewMatrix);
@@ -273,4 +322,94 @@ void App::CreateViewAndPerspective()
     float aspectRatio = 1280.0f / 720.0f;
     DirectX::XMMATRIX projMatrix = DirectX::XMMatrixPerspectiveFovRH(DirectX::XM_PIDIV4, aspectRatio, 0.01f, 100.0f);
     DirectX::XMStoreFloat4x4(&proj, projMatrix);
+}
+
+void App::imgui_window_render_camera()
+{
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.5f, 0.5f, 0.0f, 1.0f));
+    //camera position
+    ImGui::Begin("Change viewing position");
+    // Display contents in a scrolling region
+    ImGui::TextColored(ImVec4(1, 1, 1, 1), "Current Position:");
+    ImGui::SliderFloat(" Rightward", &forward, -10.0f, 10.0f);
+    ImGui::SliderFloat(" Upward", &upward, -10.0f, 10.0f);
+    ImGui::SliderFloat(" Forward", &rightward, -10.0f, 10.0f);
+    /*ImGui::Text("Rightward value = %f", &forward);
+    ImGui::Text("\nUpward value = %f", &upward);
+    ImGui::Text("\nForward value = %f", &rightward);*/
+    ImGui::End();
+    ImGui::PopStyleColor();
+}
+
+void App::imgui_window_render_position()
+{
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.451f, 0.3098f, 0.5882f, 1.0f));
+    //cube position
+    ImGui::Begin("Change cube position");
+    // Display contents in a scrolling region
+    ImGui::TextColored(ImVec4(1, 1, 1, 1), "Current Position:");
+    ImGui::SliderFloat(" X", &x, -10.0f, 10.0f);
+    ImGui::SliderFloat(" Y", &y, -10.0f, 10.0f);
+    ImGui::SliderFloat(" Z", &z, -10.0f, 10.0f);
+    ImGui::InputFloat("X", &x);
+    ImGui::InputFloat("Y", &y);
+    ImGui::InputFloat("Z", &z);
+    ImGui::End();
+    ImGui::PopStyleColor();
+}
+
+void App::imgui_window_render_rotation()
+{
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.133f, 0.545f, 0.133f, 1.0f));
+    //cube position
+    ImGui::Begin("Change cube rotation around axes:");
+    // Display contents in a scrolling region
+    ImGui::TextColored(ImVec4(1, 1, 1, 1), "Current Rotation:");
+    ImGui::SliderFloat(" Rotation X (Roll)", &m_rot_x, -10.0f, 10.0f);
+    ImGui::TextColored(ImVec4(1, 1, 1, 1), "Current Rotation:");
+    ImGui::SliderFloat(" Rotation Y (Pitch)", &m_rot_y, -10.0f, 10.0f);
+    ImGui::TextColored(ImVec4(1, 1, 1, 1), "Current Rotation:");
+    ImGui::SliderFloat(" Rotation Z (Yaw)", &m_rot_z, -10.0f, 10.0f);
+    ImGui::End();
+    ImGui::PopStyleColor();
+}
+
+void App::imgui_window_render_scale()
+{
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 1.0f, 1.0f, 1.0f));
+    //cube scale
+    ImGui::Begin("Change cube scale");
+    // Display contents in a scrolling region
+    ImGui::TextColored(ImVec4(0.13, 0.13, 0.13, 1), "Current Scale:");
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
+    ImGui::SliderFloat("Scale X", &m_scale_x, 0.0f, 10.0f);
+    ImGui::SliderFloat("Scale Y", &m_scale_y, 0.0f, 10.0f);
+    ImGui::SliderFloat("Scale Z", &m_scale_z, 0.0f, 10.0f);
+    ImGui::PopStyleColor();
+    ImGui::End();
+    ImGui::PopStyleColor();
+}
+
+
+void App::imgui_start_menu()
+{
+    deviceContext->clearRenderTargetColor(graphicsEngine.swapChain, 0.13f, 0.13f, 0.5f, 0.75f);
+    deviceContext->clearDepthStencilView(depth_stencil_view);
+    g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, depth_stencil_view);
+
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.588f, 0.294f, 0.0f, 0.75f));
+    ImGui::SetWindowPos(ImVec2(500, 500));
+    ImGui::Begin("MENU");
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
+    if (ImGui::Button("START")) {
+        gameStarted = true;
+        showMenu = false;
+    }
+    if (ImGui::Button("QUIT")) {
+        quit_game = true;
+    }
+    ImGui::PopStyleColor();
+    ImGui::End();
+    ImGui::PopStyleColor();
+    
 }

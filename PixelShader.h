@@ -15,5 +15,6 @@ private:
 private:
 	friend class RenderSystem;
 	friend class DeviceContext;
+	friend class App;
 };
 
