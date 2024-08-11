@@ -1,17 +1,18 @@
 struct PS_INPUT
 {
     float4 pos : SV_POSITION;
-    float4 color : COLOR;
+    float2 coord : TEXCOORD0;
+    float3 norm : NORMAL0;
 };
 
 struct PSOutput
 {
-    float4 color : SV_Target0;
+    float4 norm : SV_Target;
 };
 
 PSOutput main(PS_INPUT input)
 {
-    PSOutput output = (PSOutput) 0;
-    output.color = input.color;
+    PSOutput output;
+    output.norm = float4(input.norm, 1.0f);
     return output;
 }

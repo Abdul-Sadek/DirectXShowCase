@@ -30,10 +30,9 @@ public:
 	SwapChain* swapChain = nullptr;
 private:
 	static GraphicsEngine* graphics_engine;
-
-
 	unsigned char mesh_layout_byte_code[2048];
 	size_t mesh_layout_size = 0;
 private:
 	friend class App;
+	friend class Mesh;
 };

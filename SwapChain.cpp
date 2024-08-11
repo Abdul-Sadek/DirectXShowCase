@@ -1,5 +1,6 @@
 #include "SwapChain.h"
 #include "RenderSystem.h"
+#include "imgui/imgui.h"
 #include <exception>
 
 SwapChain::SwapChain(ID3D11Device* device) : device(device)
@@ -38,7 +39,6 @@ SwapChain::SwapChain(HWND hwnd, UINT width, UINT height, ID3D11Device* device) :
 
 	createRenderTargetView();
 }
-
 void SwapChain::createRenderTargetView() {
 	// Get the back buffer
 	ID3D11Texture2D* pBackBuffer = nullptr;

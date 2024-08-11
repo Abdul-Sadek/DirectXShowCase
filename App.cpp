@@ -11,7 +11,8 @@
 
 struct Vertex {
     Vector4D position;
-    Vector4D color;
+    Vector2D color;
+    Vector3D normal;
 };
 struct Constant
 {
@@ -19,14 +20,14 @@ struct Constant
 };
 
 Vertex vertices[] = {
-    { Vector4D(-1.0f, -1.0f, -1.0f, 1.0f),    Vector4D(0.75f, 0.75f, 0.0f, 1.0f) },
-    { Vector4D(-1.0f,  1.0f, -1.0f, 1.0f),    Vector4D(0.75f, 0.0f, 0.75f, 1.0f) },
-    { Vector4D(1.0f,  1.0f, -1.0f, 1.0f),     Vector4D(0.0f, 0.75f, 0.75f, 1.0f) },
-    { Vector4D(1.0f, -1.0f, -1.0f, 1.0f),     Vector4D(0.75f, 0.0f, 0.0f, 1.0f) },
-    { Vector4D(-1.0f, -1.0f,  1.0f, 1.0f),    Vector4D(0.0f, 0.75f, 0.0f, 1.0f) },
-    { Vector4D(-1.0f,  1.0f,  1.0f, 1.0f),    Vector4D(0.0f, 0.0f, 0.75f, 1.0f) },
-    { Vector4D(1.0f,  1.0f,  1.0f, 1.0f),     Vector4D(0.75f, 0.75f, 0.75f, 1.0f) },
-    { Vector4D(1.0f, -1.0f,  1.0f, 1.0f),     Vector4D(0.75f, 0.75f, 0.75f, 1.0f) },
+    { Vector4D(-1.0f, -1.0f, -1.0f, 1.0f),    Vector2D(0.75f, 0.75f) ,  Vector3D(0.75f, 0.75f,0.75f) },
+    { Vector4D(-1.0f,  1.0f, -1.0f, 1.0f),    Vector2D(0.75f, 0.0f) ,   Vector3D(0.75f, 0.75f,0.75f) },
+    { Vector4D(1.0f,  1.0f, -1.0f, 1.0f),     Vector2D(0.0f, 0.75f) ,   Vector3D(0.75f, 0.75f,0.75f) },
+    { Vector4D(1.0f, -1.0f, -1.0f, 1.0f),     Vector2D(0.75f, 0.0f) ,   Vector3D(0.75f, 0.75f,0.75f) },
+    { Vector4D(-1.0f, -1.0f,  1.0f, 1.0f),    Vector2D(0.0f, 0.75f) ,   Vector3D(0.75f, 0.75f,0.75f) },
+    { Vector4D(-1.0f,  1.0f,  1.0f, 1.0f),    Vector2D(0.0f, 0.0f) ,    Vector3D(0.75f, 0.75f,0.75f) },
+    { Vector4D(1.0f,  1.0f,  1.0f, 1.0f),     Vector2D(0.75f, 0.75f) ,  Vector3D(0.75f, 0.75f,0.75f) },
+    { Vector4D(1.0f, -1.0f,  1.0f, 1.0f),     Vector2D(0.75f, 0.75f) ,  Vector3D(0.75f, 0.75f,0.75f) },
 };
 
 UINT indices[] = {
@@ -91,13 +92,13 @@ void App::onCreate()
     std::vector<char> psBytecode = LoadShader(L"PixelShader.cso");
     pixel_shader = new PixelShader(psBytecode.data(), psBytecode.size(), g_pd3dDevice);
 
+
     // Create vertex buffer
     try {
         vertex_buffer = new VertexBuffer(vertices, sizeof(Vertex), ARRAYSIZE(vertices), vsBytecode.data(), vsBytecode.size(), g_pd3dDevice);
         if (vertex_buffer == nullptr) {
             IMGUI_DEBUG_LOG("Vertex buffer is nullptr after creation");
         }
-        IMGUI_DEBUG_LOG("Vertex buffer created successfully");
     }
     catch (const std::exception& e) {
         IMGUI_DEBUG_LOG("Failed to create Vertex buffer: %s", e.what());
@@ -110,7 +111,6 @@ void App::onCreate()
         if (index_buffer == nullptr) {
             IMGUI_DEBUG_LOG("Index buffer is nullptr after creation");
         }
-        IMGUI_DEBUG_LOG("Index buffer created successfully");
     }
     catch (const std::exception& e) {
         IMGUI_DEBUG_LOG("Failed to create Index buffer: %s", e.what());
@@ -130,8 +130,15 @@ void App::onCreate()
         throw std::exception("Failed to initialize ImGui DX11 backend");
     }
     deviceContext->setViewportSize(1280, 720);
-    deviceContext->setVertexBuffer(vertex_buffer);
-    deviceContext->setIndexBuffer(index_buffer);
+
+    mesh = new Mesh(L"Assets\\Meshes\\box.obj", g_pd3dDevice, vsBytecode.data(), vsBytecode.size());
+    if (mesh == nullptr) {
+        IMGUI_DEBUG_LOG("Mesh is null after creation");
+    }
+
+    deviceContext->setVertexBuffer(mesh->m_vertex_buffer);
+    deviceContext->setIndexBuffer(mesh->m_index_buffer);
+    
     
 
     /*D3D11_BLEND_DESC blend_desc;
@@ -151,6 +158,9 @@ void App::onCreate()
     UINT sampleMask = 0xffffffff;
     g_pd3dDeviceContext->OMSetBlendState(blendstate, blendFactor, sampleMask);*/
 
+    /*deviceContext->setVertexBuffer(vertex_buffer);
+    deviceContext->setIndexBuffer(index_buffer);*/
+
     deviceContext->setVertexShader(vertex_shader);
     deviceContext->setPixelShader(pixel_shader);
     deviceContext->setConstantBuffer(vertex_shader, constant_buffer);
@@ -160,6 +170,8 @@ void App::onCreate()
     // Create view and perspective matrices
     CreateViewAndPerspective();
 
+
+    
     
 }
 
@@ -211,7 +223,6 @@ void App::onUpdate()
     // Rendering ImGui
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
     // Present the frame
     g_pSwapChain->Present(1, 0);
 
@@ -255,6 +266,7 @@ void App::render() {
     deviceContext->clearRenderTargetColor(graphicsEngine.swapChain, 0.25f, 0.25f, 0.75f, 1.0f);
     deviceContext->clearDepthStencilView(depth_stencil_view);
     g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, depth_stencil_view);
+
 
     if (ImGui::IsKeyPressed(ImGuiKey_D)) {
         forward += 1.0f;
@@ -300,8 +312,14 @@ void App::render() {
     Constant cb1;
     DirectX::XMStoreFloat4x4(&cb1.worldViewProj, DirectX::XMMatrixTranspose(worldViewProjMatrix));
     constant_buffer->update(deviceContext, &cb1);
+    //cube drawing
+    //deviceContext->drawIndexedTriangleList(ARRAYSIZE(indices), 0, 0);
+    //mesh drawing
+    if (mesh->m_index_buffer->getSizeIndexList() < 1) {
+        IMGUI_DEBUG_LOG("mesh's index_buffer is empty!");
+    }
+    deviceContext->drawIndexedTriangleList(mesh->m_index_buffer->getSizeIndexList(), 0, 0);
 
-    deviceContext->drawIndexedTriangleList(ARRAYSIZE(indices), 0, 0);
 
 }
 

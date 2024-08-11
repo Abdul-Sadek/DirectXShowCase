@@ -11,7 +11,7 @@ IndexBuffer::IndexBuffer(void* list_indices, UINT size_list, ID3D11Device* devic
 	//creating the buffer description 
 	D3D11_BUFFER_DESC indexBufferDesc;
 	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufferDesc.ByteWidth = 4 * size_list;
+	indexBufferDesc.ByteWidth = sizeof(unsigned int) * size_list;
 	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	indexBufferDesc.CPUAccessFlags = 0;
 	indexBufferDesc.MiscFlags = 0;

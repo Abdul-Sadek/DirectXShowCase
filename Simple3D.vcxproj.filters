@@ -37,6 +37,9 @@
     <Filter Include="Rendering System\VertexShader">
       <UniqueIdentifier>{58361a3e-75e4-4347-9d7c-fb253328a758}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Rendering System\Mesh">
+      <UniqueIdentifier>{904192a4-18c2-4558-bd98-318fbd0a6737}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp">
@@ -95,6 +98,9 @@
     </ClCompile>
     <ClCompile Include="PixelShader.cpp">
       <Filter>Rendering System\PixelShader</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Rendering System\Mesh</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -166,6 +172,9 @@
     </ClInclude>
     <ClInclude Include="Matrix4x4.h">
       <Filter>Maths</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Rendering System\Mesh</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

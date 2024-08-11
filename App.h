@@ -6,6 +6,7 @@
 #include "GraphicsEngine.h"
 #include "SwapChain.h"
 #include "DeviceContext.h"
+#include "Mesh.h"
 #include <d3d11.h>
 #include <tchar.h>
 #include <d3d11.h>
@@ -56,13 +57,11 @@ private:
 	VertexShader* vertex_shader = nullptr;
 	PixelShader* pixel_shader = nullptr;
 private:
-
+	Mesh* mesh = nullptr;
+private:
 	bool g_SwapChainOccluded = false;
-
 	UINT g_ResizeWidth = 0, g_ResizeHeight = 0;
-
 	ID3D11RenderTargetView* g_mainRenderTargetView = nullptr;
-
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 private:
 	float old_delta;
