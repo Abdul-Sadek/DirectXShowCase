@@ -18,5 +18,4 @@ private:
 private:
 	friend class DeviceContext;
 	friend class App;
-	friend class Mesh;
 };
