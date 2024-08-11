@@ -94,7 +94,7 @@ void App::onCreate()
 
 
     // Create vertex buffer
-    try {
+    /*try {
         vertex_buffer = new VertexBuffer(vertices, sizeof(Vertex), ARRAYSIZE(vertices), vsBytecode.data(), vsBytecode.size(), g_pd3dDevice);
         if (vertex_buffer == nullptr) {
             IMGUI_DEBUG_LOG("Vertex buffer is nullptr after creation");
@@ -115,7 +115,7 @@ void App::onCreate()
     catch (const std::exception& e) {
         IMGUI_DEBUG_LOG("Failed to create Index buffer: %s", e.what());
         return;
-    }
+    }*/
     //create the constant buffer
     Constant c;
     constant_buffer = new ConstantBuffer(&c, sizeof(Constant), g_pd3dDevice);
@@ -136,8 +136,8 @@ void App::onCreate()
         IMGUI_DEBUG_LOG("Mesh is null after creation");
     }
 
-    deviceContext->setVertexBuffer(mesh->m_vertex_buffer);
-    deviceContext->setIndexBuffer(mesh->m_index_buffer);
+    deviceContext->setVertexBuffer(mesh->getVertexBuffer());
+    deviceContext->setIndexBuffer(mesh->getIndexBuffer());
     
     
 
@@ -315,10 +315,10 @@ void App::render() {
     //cube drawing
     //deviceContext->drawIndexedTriangleList(ARRAYSIZE(indices), 0, 0);
     //mesh drawing
-    if (mesh->m_index_buffer->getSizeIndexList() < 1) {
+    if (mesh->getIndexBuffer()->m_size_list < 1) {
         IMGUI_DEBUG_LOG("mesh's index_buffer is empty!");
     }
-    deviceContext->drawIndexedTriangleList(mesh->m_index_buffer->getSizeIndexList(), 0, 0);
+    deviceContext->drawIndexedTriangleList(mesh->getIndexBuffer()->m_size_list, 0, 0);
 
 
 }
