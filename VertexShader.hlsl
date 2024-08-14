@@ -19,7 +19,7 @@ struct PS_INPUT
 
 PS_INPUT main(VS_INPUT input)
 {
-    PS_INPUT output = (PS_INPUT)0;
+    PS_INPUT output = (PS_INPUT) 0;
     output.pos = mul(input.pos, worldViewProj);
     output.coord = input.coord;
     output.norm = input.norm;

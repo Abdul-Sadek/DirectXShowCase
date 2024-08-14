@@ -5,6 +5,8 @@
 #include "IndexBuffer.h"
 #include "VertexBuffer.h"
 #include "ConstantBuffer.h"
+#include "Texture.h"
+#include "Material.h"
 #include <d3d11.h>
 #include <memory>
 
@@ -18,7 +20,7 @@ private:
 public:
 	void getVertexMeshLayoutShaderByteCodeAndSize(void** byte_code, size_t* size);
 	bool createDevices(HWND hwnd, UINT width, UINT height);
-
+	void setMaterial(const Material* material);
 public:
 	static GraphicsEngine* get();
 	static void create();
@@ -28,6 +30,7 @@ public:
 	ID3D11DeviceContext* deviceContext = nullptr;
 	ID3D11DepthStencilView* depth_view = nullptr;
 	SwapChain* swapChain = nullptr;
+	DeviceContext* deviceContextClass = nullptr;
 private:
 	static GraphicsEngine* graphics_engine;
 	unsigned char mesh_layout_byte_code[2048];

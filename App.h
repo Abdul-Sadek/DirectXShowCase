@@ -7,12 +7,15 @@
 #include "SwapChain.h"
 #include "DeviceContext.h"
 #include "Mesh.h"
+#include "Texture.h"
+#include "Material.h"
 #include <d3d11.h>
 #include <tchar.h>
 #include <d3d11.h>
 #include <dxgi.h>
 #include <exception>
 #include <directxmath.h>
+#include <vector>
 
 class App : public Window
 {
@@ -58,6 +61,9 @@ private:
 	PixelShader* pixel_shader = nullptr;
 private:
 	Mesh* mesh = nullptr;
+	std::vector<Texture*> textures;
+	Texture* texture = nullptr;
+	Material* material = nullptr;
 private:
 	bool g_SwapChainOccluded = false;
 	UINT g_ResizeWidth = 0, g_ResizeHeight = 0;

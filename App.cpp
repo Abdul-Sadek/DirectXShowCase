@@ -6,13 +6,14 @@
 #include <iostream>
 #include <d3dcompiler.h>
 #include <fstream>
-#include <vector>
+
 
 
 struct Vertex {
     Vector4D position;
-    Vector2D color;
+    Vector2D texcoord;
     Vector3D normal;
+    Vector4D Color;
 };
 struct Constant
 {
@@ -131,14 +132,13 @@ void App::onCreate()
     }
     deviceContext->setViewportSize(1280, 720);
 
-    mesh = new Mesh(L"Assets\\Meshes\\box.obj", g_pd3dDevice, vsBytecode.data(), vsBytecode.size());
+    mesh = new Mesh(L"Assets\\Meshes\\sphere.obj", g_pd3dDevice, vsBytecode.data(), vsBytecode.size());
+    texture = new Texture(L"Assets\\Textures\\Time.jpg", g_pd3dDevice, g_pd3dDeviceContext);
+    textures.push_back(texture);
     if (mesh == nullptr) {
         IMGUI_DEBUG_LOG("Mesh is null after creation");
     }
 
-    deviceContext->setVertexBuffer(mesh->getVertexBuffer());
-    deviceContext->setIndexBuffer(mesh->getIndexBuffer());
-    
     
 
     /*D3D11_BLEND_DESC blend_desc;
@@ -161,17 +161,23 @@ void App::onCreate()
     /*deviceContext->setVertexBuffer(vertex_buffer);
     deviceContext->setIndexBuffer(index_buffer);*/
 
+
     deviceContext->setVertexShader(vertex_shader);
     deviceContext->setPixelShader(pixel_shader);
     deviceContext->setConstantBuffer(vertex_shader, constant_buffer);
     deviceContext->setConstantBuffer(pixel_shader, constant_buffer);
+    deviceContext->setTexture(vertex_shader, textures, 1);
+    deviceContext->setTexture(pixel_shader,textures,1);
 
+    deviceContext->setVertexBuffer(mesh->getVertexBuffer());
+    deviceContext->setIndexBuffer(mesh->getIndexBuffer());
+
+    if (mesh->m_index_buffer->getSizeIndexList() < 1) {
+        IMGUI_DEBUG_LOG("Mesh index buffer is empty after creation");
+    }
 
     // Create view and perspective matrices
     CreateViewAndPerspective();
-
-
-    
     
 }
 
@@ -315,9 +321,6 @@ void App::render() {
     //cube drawing
     //deviceContext->drawIndexedTriangleList(ARRAYSIZE(indices), 0, 0);
     //mesh drawing
-    if (mesh->getIndexBuffer()->m_size_list < 1) {
-        IMGUI_DEBUG_LOG("mesh's index_buffer is empty!");
-    }
     deviceContext->drawIndexedTriangleList(mesh->getIndexBuffer()->m_size_list, 0, 0);
 
 
@@ -363,7 +366,7 @@ void App::imgui_window_render_position()
 {
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.451f, 0.3098f, 0.5882f, 1.0f));
     //cube position
-    ImGui::Begin("Change cube position");
+    ImGui::Begin("Change mesh position");
     // Display contents in a scrolling region
     ImGui::TextColored(ImVec4(1, 1, 1, 1), "Current Position:");
     ImGui::SliderFloat(" X", &x, -10.0f, 10.0f);
@@ -380,7 +383,7 @@ void App::imgui_window_render_rotation()
 {
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.133f, 0.545f, 0.133f, 1.0f));
     //cube position
-    ImGui::Begin("Change cube rotation around axes:");
+    ImGui::Begin("Change mesh rotation around axes:");
     // Display contents in a scrolling region
     ImGui::TextColored(ImVec4(1, 1, 1, 1), "Current Rotation:");
     ImGui::SliderFloat(" Rotation X (Roll)", &m_rot_x, -10.0f, 10.0f);
@@ -396,7 +399,7 @@ void App::imgui_window_render_scale()
 {
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 1.0f, 1.0f, 1.0f));
     //cube scale
-    ImGui::Begin("Change cube scale");
+    ImGui::Begin("Change mesh scale");
     // Display contents in a scrolling region
     ImGui::TextColored(ImVec4(0.13, 0.13, 0.13, 1), "Current Scale:");
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));

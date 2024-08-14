@@ -40,6 +40,12 @@
     <Filter Include="Rendering System\Mesh">
       <UniqueIdentifier>{904192a4-18c2-4558-bd98-318fbd0a6737}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Rendering System\Texture">
+      <UniqueIdentifier>{54f592dd-2346-48d6-9a3e-9b47b6c9b492}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering System\Material">
+      <UniqueIdentifier>{dec59561-ce41-41cb-9331-d85ddefc3634}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp">
@@ -101,6 +107,12 @@
     </ClCompile>
     <ClCompile Include="Mesh.cpp">
       <Filter>Rendering System\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Rendering System\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>Rendering System\Material</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -175,6 +187,12 @@
     </ClInclude>
     <ClInclude Include="Mesh.h">
       <Filter>Rendering System\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Rendering System\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>Rendering System\Material</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

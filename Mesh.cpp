@@ -9,6 +9,7 @@
 #include "Vector3D.h"
 #include "Vector4D.h"
 #include "Vector2D.h"
+#include "imgui/imgui.h"
 
 struct vertex {
 	Vector4D position;
@@ -71,7 +72,7 @@ Mesh::Mesh(const wchar_t* full_path, ID3D11Device* device, void* shader_byte_cod
 				tinyobj::real_t ny = attribs.normals[static_cast<std::vector<tinyobj::real_t, std::allocator<tinyobj::real_t>>::size_type>(index.normal_index) * 3 + 1];
 				tinyobj::real_t nz = attribs.normals[static_cast<std::vector<tinyobj::real_t, std::allocator<tinyobj::real_t>>::size_type>(index.normal_index) * 3 + 2];
 
-				vertex vertex(Vector4D(vx, vy, vz, 1.0f), Vector2D(tx, ty), Vector3D(nx, ny, nz), Vector4D(0.5f, 0.5f, 0.5f, 0.5f));
+				vertex vertex(Vector4D(vx, vy, vz, 1.0f), Vector2D(tx, ty), Vector3D(nx, ny, nz), Vector4D(1.0f, 1.0f, 1.0f, 1.0f));
 				list_vertices.push_back(vertex);
 
 				list_indices.push_back((unsigned int)index_offset + v);
@@ -82,6 +83,7 @@ Mesh::Mesh(const wchar_t* full_path, ID3D11Device* device, void* shader_byte_cod
 	m_vertex_buffer = new VertexBuffer(list_vertices.data(), sizeof(vertex),
 		(UINT)list_vertices.size(), shader_byte_code, (UINT)size_shader, device);
 	m_index_buffer = new IndexBuffer(&list_indices[0], (UINT)list_indices.size(), device);
+	IMGUI_DEBUG_LOG("Index buffer size: %u", m_index_buffer->getSizeIndexList());
 
 }
 

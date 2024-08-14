@@ -6,7 +6,7 @@ IndexBuffer::IndexBuffer()
 {
 }
 
-IndexBuffer::IndexBuffer(void* list_indices, UINT size_list, ID3D11Device* device) : device(device), output_buffer(0)
+IndexBuffer::IndexBuffer(void* list_indices, UINT size_list, ID3D11Device* device) : device(device), output_buffer(0), m_size_list(size_list)
 {
 	//creating the buffer description 
 	D3D11_BUFFER_DESC indexBufferDesc;

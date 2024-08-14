@@ -7,8 +7,10 @@
 #include "ConstantBuffer.h"
 #include "VertexShader.h"
 #include "PixelShader.h"
+#include "Texture.h"
 #include <d3d11.h>
 #include <memory>
+#include <vector>
 
 class VertexShader;
 class SwapChain;
@@ -38,6 +40,9 @@ public:
 
 	void setConstantBuffer(const VertexShader* vertex_shader, const ConstantBuffer* buffer);
 	void setConstantBuffer(const PixelShader* pixel_shader, const ConstantBuffer* buffer);
+
+	void setTexture(const VertexShader* vertex_shader, const std::vector<Texture*>& textures, unsigned int num_texture);
+	void setTexture(const PixelShader* pixel_shader, const std::vector<Texture*>& textures, unsigned int num_texture);
 
 	~DeviceContext();
 private:

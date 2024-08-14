@@ -1,6 +1,7 @@
 #include "DeviceContext.h"
 #include <exception>
 
+
 DeviceContext::DeviceContext(ID3D11DeviceContext* device_context) : device_context(device_context)
 {
 }
@@ -107,6 +108,32 @@ void DeviceContext::setConstantBuffer(const VertexShader* vertex_shader, const C
 void DeviceContext::setConstantBuffer(const PixelShader* pixel_shader, const ConstantBuffer* buffer)
 {
 	device_context->PSSetConstantBuffers(0, 1, &buffer->output_buffer);
+}
+
+void DeviceContext::setTexture(const VertexShader* vertex_shader, const std::vector<Texture*>& textures, unsigned int num_texture)
+{
+	ID3D11ShaderResourceView* list_res[32];
+	ID3D11SamplerState* list_sampler[32];
+	for (unsigned int i = 0; i < num_texture; i++)
+	{
+		list_res[i] = textures[i]->m_shader_res_view;
+		list_sampler[i] = textures[i]->m_sampler_state;
+	}
+	device_context->VSSetShaderResources(0, num_texture, list_res);
+	device_context->VSSetSamplers(0, num_texture, list_sampler);
+}
+
+void DeviceContext::setTexture(const PixelShader* pixel_shader, const std::vector<Texture*>& textures, unsigned int num_texture)
+{
+	std::vector<ID3D11ShaderResourceView*> shader_resources;
+	std::vector<ID3D11SamplerState*> samplers;
+	for (unsigned int i = 0; i < num_texture; i++)
+	{
+		shader_resources.push_back(textures[i]->m_shader_res_view);
+		samplers.push_back(textures[i]->m_sampler_state);
+	}
+	device_context->PSSetShaderResources(0, (UINT)shader_resources.size(), shader_resources.data());
+	device_context->PSSetSamplers(0, (UINT)samplers.size(), samplers.data());
 }
 
 DeviceContext::~DeviceContext()
