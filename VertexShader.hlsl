@@ -8,20 +8,23 @@ struct VS_INPUT
     float4 pos : POSITION;
     float2 coord : TEXCOORD0;
     float3 norm : NORMAL0;
+    float4 color : COLOR0;
 };
 
-struct PS_INPUT
+struct VS_OUTPUT
 {
     float4 pos : SV_POSITION;
     float2 coord : TEXCOORD0;
     float3 norm : NORMAL0;
+    float4 color : COLOR0;
 };
 
-PS_INPUT main(VS_INPUT input)
+VS_OUTPUT main(VS_INPUT input)
 {
-    PS_INPUT output = (PS_INPUT) 0;
+    VS_OUTPUT output = (VS_OUTPUT) 0;
     output.pos = mul(input.pos, worldViewProj);
     output.coord = input.coord;
     output.norm = input.norm;
+    output.color = input.color;
     return output;
 }

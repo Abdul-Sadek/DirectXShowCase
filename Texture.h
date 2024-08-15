@@ -13,5 +13,6 @@ private:
 	ID3D11SamplerState* m_sampler_state = nullptr;
 private:
 	friend class DeviceContext;
+	friend class App;
 };
 

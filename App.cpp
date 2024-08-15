@@ -6,7 +6,7 @@
 #include <iostream>
 #include <d3dcompiler.h>
 #include <fstream>
-
+#include <DirectXTex.h>
 
 
 struct Vertex {
@@ -15,6 +15,7 @@ struct Vertex {
     Vector3D normal;
     Vector4D Color;
 };
+__declspec(align(16))
 struct Constant
 {
     DirectX::XMFLOAT4X4 worldViewProj;
@@ -116,7 +117,12 @@ void App::onCreate()
     catch (const std::exception& e) {
         IMGUI_DEBUG_LOG("Failed to create Index buffer: %s", e.what());
         return;
-    }*/
+    }
+    deviceContext->setVertexBuffer(vertex_buffer);
+    deviceContext->setIndexBuffer(index_buffer);
+    */
+
+
     //create the constant buffer
     Constant c;
     constant_buffer = new ConstantBuffer(&c, sizeof(Constant), g_pd3dDevice);
@@ -132,14 +138,12 @@ void App::onCreate()
     }
     deviceContext->setViewportSize(1280, 720);
 
-    mesh = new Mesh(L"Assets\\Meshes\\sphere.obj", g_pd3dDevice, vsBytecode.data(), vsBytecode.size());
-    texture = new Texture(L"Assets\\Textures\\Time.jpg", g_pd3dDevice, g_pd3dDeviceContext);
+    mesh = new Mesh(L"Assets\\Meshes\\box.obj", g_pd3dDevice, vsBytecode.data(), vsBytecode.size());
+    texture = new Texture(L"Assets\\Textures\\brick.png", g_pd3dDevice, g_pd3dDeviceContext);
     textures.push_back(texture);
     if (mesh == nullptr) {
         IMGUI_DEBUG_LOG("Mesh is null after creation");
     }
-
-    
 
     /*D3D11_BLEND_DESC blend_desc;
     blend_desc.AlphaToCoverageEnable = FALSE;
@@ -158,17 +162,21 @@ void App::onCreate()
     UINT sampleMask = 0xffffffff;
     g_pd3dDeviceContext->OMSetBlendState(blendstate, blendFactor, sampleMask);*/
 
-    /*deviceContext->setVertexBuffer(vertex_buffer);
-    deviceContext->setIndexBuffer(index_buffer);*/
+    D3D11_RASTERIZER_DESC rasterDesc = {};
+    ZeroMemory(&rasterDesc, sizeof(D3D11_RASTERIZER_DESC));
+    rasterDesc.FillMode = D3D11_FILL_SOLID;
+    rasterDesc.CullMode = D3D11_CULL_BACK;
+    rasterDesc.DepthClipEnable = true;
+    ID3D11RasterizerState* pRasterState = nullptr;
+    g_pd3dDevice->CreateRasterizerState(&rasterDesc, &pRasterState);
+    g_pd3dDeviceContext->RSSetState(pRasterState);
+    if (pRasterState) pRasterState->Release();
 
-
-    deviceContext->setVertexShader(vertex_shader);
-    deviceContext->setPixelShader(pixel_shader);
     deviceContext->setConstantBuffer(vertex_shader, constant_buffer);
     deviceContext->setConstantBuffer(pixel_shader, constant_buffer);
-    deviceContext->setTexture(vertex_shader, textures, 1);
-    deviceContext->setTexture(pixel_shader,textures,1);
-
+    //deviceContext->setTexture(pixel_shader, textures, textures.size());
+    deviceContext->setVertexShader(vertex_shader);
+    deviceContext->setPixelShader(pixel_shader);
     deviceContext->setVertexBuffer(mesh->getVertexBuffer());
     deviceContext->setIndexBuffer(mesh->getIndexBuffer());
 
@@ -250,13 +258,18 @@ void App::onDestroy()
     if (index_buffer) {
         delete index_buffer;
     }
-
     if (vertex_shader) {
         delete vertex_shader;
     }
     if (pixel_shader) {
         delete pixel_shader;
     }
+    if (mesh) {
+        delete mesh;
+    }
+    /*if (texture) {
+        delete texture;
+    }*/
 
     graphicsEngine.release();
 
@@ -272,7 +285,6 @@ void App::render() {
     deviceContext->clearRenderTargetColor(graphicsEngine.swapChain, 0.25f, 0.25f, 0.75f, 1.0f);
     deviceContext->clearDepthStencilView(depth_stencil_view);
     g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, depth_stencil_view);
-
 
     if (ImGui::IsKeyPressed(ImGuiKey_D)) {
         forward += 1.0f;

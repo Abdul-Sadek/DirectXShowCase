@@ -29,7 +29,7 @@ Texture::Texture(const wchar_t* full_path, ID3D11Device* device, ID3D11DeviceCon
 		sampler_desc.MaxLOD = (UINT)image_data.GetMetadata().mipLevels;
 		//creating the sampler state (for different kinds of texture sampling)
 		res = device->CreateSamplerState(&sampler_desc, &m_sampler_state);
-		if (FAILED(res)) throw std::exception("Texture not created properly!"); //exception check
+		if (FAILED(res)) throw std::exception("Texture not created properly!"); //exception check*/
 		//creating the shader resource view
 		res = device->CreateShaderResourceView(m_texture, &desc,
 			&m_shader_res_view);

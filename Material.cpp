@@ -2,7 +2,7 @@
 #include "GraphicsEngine.h"
 #include <stdexcept>
 
-Material::Material(const wchar_t* vertex_shader_path, const wchar_t* pixel_shader_path)
+Material::Material(VertexShader* m_vertex_shader, PixelShader* m_pixel_shader)
 {
 	//shaders
 	void* shader_byte_code = nullptr;

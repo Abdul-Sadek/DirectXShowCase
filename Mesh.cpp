@@ -72,7 +72,7 @@ Mesh::Mesh(const wchar_t* full_path, ID3D11Device* device, void* shader_byte_cod
 				tinyobj::real_t ny = attribs.normals[static_cast<std::vector<tinyobj::real_t, std::allocator<tinyobj::real_t>>::size_type>(index.normal_index) * 3 + 1];
 				tinyobj::real_t nz = attribs.normals[static_cast<std::vector<tinyobj::real_t, std::allocator<tinyobj::real_t>>::size_type>(index.normal_index) * 3 + 2];
 
-				vertex vertex(Vector4D(vx, vy, vz, 1.0f), Vector2D(tx, ty), Vector3D(nx, ny, nz), Vector4D(1.0f, 1.0f, 1.0f, 1.0f));
+				vertex vertex(Vector4D(vx, vy, vz, 1.0f), Vector2D(tx, ty), Vector3D(nx, ny, nz));
 				list_vertices.push_back(vertex);
 
 				list_indices.push_back((unsigned int)index_offset + v);

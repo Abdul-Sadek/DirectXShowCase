@@ -1,5 +1,6 @@
 #include "DeviceContext.h"
 #include <exception>
+#include "imgui/imgui.h"
 
 
 DeviceContext::DeviceContext(ID3D11DeviceContext* device_context) : device_context(device_context)
@@ -112,8 +113,8 @@ void DeviceContext::setConstantBuffer(const PixelShader* pixel_shader, const Con
 
 void DeviceContext::setTexture(const VertexShader* vertex_shader, const std::vector<Texture*>& textures, unsigned int num_texture)
 {
-	ID3D11ShaderResourceView* list_res[32];
-	ID3D11SamplerState* list_sampler[32];
+	ID3D11ShaderResourceView* list_res[32]{};
+	ID3D11SamplerState* list_sampler[32]{};
 	for (unsigned int i = 0; i < num_texture; i++)
 	{
 		list_res[i] = textures[i]->m_shader_res_view;
@@ -125,15 +126,21 @@ void DeviceContext::setTexture(const VertexShader* vertex_shader, const std::vec
 
 void DeviceContext::setTexture(const PixelShader* pixel_shader, const std::vector<Texture*>& textures, unsigned int num_texture)
 {
-	std::vector<ID3D11ShaderResourceView*> shader_resources;
-	std::vector<ID3D11SamplerState*> samplers;
+	ID3D11ShaderResourceView* list_res[32]{};
+	ID3D11SamplerState* list_sampler[32]{};
 	for (unsigned int i = 0; i < num_texture; i++)
 	{
-		shader_resources.push_back(textures[i]->m_shader_res_view);
-		samplers.push_back(textures[i]->m_sampler_state);
+		if (textures[i] && textures[i]->m_shader_res_view && textures[i]->m_sampler_state) {
+			list_res[i] = textures[i]->m_shader_res_view;
+			list_sampler[i] = textures[i]->m_sampler_state;
+		}
+		else {
+			IMGUI_DEBUG_LOG(" empty ");
+		}
+
 	}
-	device_context->PSSetShaderResources(0, (UINT)shader_resources.size(), shader_resources.data());
-	device_context->PSSetSamplers(0, (UINT)samplers.size(), samplers.data());
+	device_context->PSSetShaderResources(0, num_texture, list_res);
+	device_context->PSSetSamplers(0, num_texture, list_sampler);
 }
 
 DeviceContext::~DeviceContext()

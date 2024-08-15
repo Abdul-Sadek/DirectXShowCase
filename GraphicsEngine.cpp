@@ -69,7 +69,7 @@ bool GraphicsEngine::createDevices(HWND hwnd, UINT width, UINT height)
     return true;
 }
 
-void GraphicsEngine::setMaterial(const Material* material)
+/*void GraphicsEngine::setMaterial(const Material* material)
 {
     // Define the rasterizer state description
     D3D11_RASTERIZER_DESC rasterDesc = {};
@@ -114,7 +114,7 @@ void GraphicsEngine::setMaterial(const Material* material)
     //binding the texture to pixel shader
     deviceContextClass->setTexture(material->m_pixel_shader, material->m_textures, unsigned int(material->m_textures.size()));
 
-}
+}*/
 
 
 GraphicsEngine::~GraphicsEngine()

@@ -16,7 +16,7 @@ class GraphicsEngine;
 class Material
 {
 public:
-	Material(const wchar_t* vertex_shader_path, const wchar_t* pixel_shader_path);
+	Material(VertexShader* m_vertex_shader, PixelShader* m_pixel_shader);
 	~Material();
 	void addTexture(Texture* texture);
 	void removeTexture(unsigned int index);
