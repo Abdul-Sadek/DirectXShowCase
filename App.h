@@ -41,6 +41,7 @@ public:
 	void imgui_window_render_rotation();
 	void imgui_window_render_scale();
 	void imgui_start_menu();
+	void imgui_show_helper_window();
 private:
 	GraphicsEngine graphicsEngine;
 	IDXGISwapChain* g_pSwapChain = nullptr;
@@ -51,6 +52,7 @@ private:
 	ID3D11Buffer* dx_constant_buffer = nullptr;
 	ID3D11InputLayout* vertexLayout = nullptr;
 	ID3D11DepthStencilView* depth_stencil_view = nullptr;
+	ID3D11RasterizerState* pRasterState = nullptr;
 private:
 	SwapChain* swapChain = nullptr;
 	DeviceContext* deviceContext = nullptr;
@@ -92,6 +94,7 @@ private:
 	bool showWindowPosition = false;
 	bool showWindowRotation = false;
 	bool showWindowScale = false;
+	bool showHelperMenu = false;
 	bool showMenu = true;
 	bool gameStarted = false;
 	bool quit_game = false;

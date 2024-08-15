@@ -139,7 +139,7 @@ void App::onCreate()
     deviceContext->setViewportSize(1280, 720);
 
     mesh = new Mesh(L"Assets\\Meshes\\box.obj", g_pd3dDevice, vsBytecode.data(), vsBytecode.size());
-    texture = new Texture(L"Assets\\Textures\\brick.png", g_pd3dDevice, g_pd3dDeviceContext);
+    texture = new Texture(L"Assets\\Textures\\house_windows.jpg", g_pd3dDevice, g_pd3dDeviceContext);
     textures.push_back(texture);
     if (mesh == nullptr) {
         IMGUI_DEBUG_LOG("Mesh is null after creation");
@@ -167,14 +167,12 @@ void App::onCreate()
     rasterDesc.FillMode = D3D11_FILL_SOLID;
     rasterDesc.CullMode = D3D11_CULL_BACK;
     rasterDesc.DepthClipEnable = true;
-    ID3D11RasterizerState* pRasterState = nullptr;
     g_pd3dDevice->CreateRasterizerState(&rasterDesc, &pRasterState);
     g_pd3dDeviceContext->RSSetState(pRasterState);
-    if (pRasterState) pRasterState->Release();
 
     deviceContext->setConstantBuffer(vertex_shader, constant_buffer);
     deviceContext->setConstantBuffer(pixel_shader, constant_buffer);
-    //deviceContext->setTexture(pixel_shader, textures, textures.size());
+    deviceContext->setTexture(pixel_shader, textures, (UINT)textures.size());
     deviceContext->setVertexShader(vertex_shader);
     deviceContext->setPixelShader(pixel_shader);
     deviceContext->setVertexBuffer(mesh->getVertexBuffer());
@@ -229,6 +227,13 @@ void App::onUpdate()
         if (showWindowScale) {
             imgui_window_render_scale();
         }
+        //helper window
+        if (ImGui::IsKeyReleased(ImGuiKey_Tab)) {
+            showHelperMenu = !showHelperMenu; // toggle the window visibility
+        }
+        if (showHelperMenu) {
+            imgui_show_helper_window();
+        }
 
         // Rendering
         render();
@@ -267,9 +272,9 @@ void App::onDestroy()
     if (mesh) {
         delete mesh;
     }
-    /*if (texture) {
+    if (texture) {
         delete texture;
-    }*/
+    }
 
     graphicsEngine.release();
 
@@ -285,6 +290,11 @@ void App::render() {
     deviceContext->clearRenderTargetColor(graphicsEngine.swapChain, 0.25f, 0.25f, 0.75f, 1.0f);
     deviceContext->clearDepthStencilView(depth_stencil_view);
     g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, depth_stencil_view);
+    g_pd3dDeviceContext->IASetInputLayout(mesh->getVertexBuffer()->input_layout);
+    g_pd3dDeviceContext->RSSetState(pRasterState);
+    deviceContext->setTexture(pixel_shader, textures, textures.size());
+    deviceContext->setVertexShader(vertex_shader);
+    deviceContext->setPixelShader(pixel_shader);
 
     if (ImGui::IsKeyPressed(ImGuiKey_D)) {
         forward += 1.0f;
@@ -445,4 +455,23 @@ void App::imgui_start_menu()
     ImGui::End();
     ImGui::PopStyleColor();
     
+}
+
+void App::imgui_show_helper_window()
+{
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.75f, 0.83f, 0.83f, 1.0f));
+    //cube scale
+    ImGui::Begin("HELPER WINDOW");
+    // Display contents in a scrolling region
+    ImGui::TextColored(ImVec4(0.13, 0.13, 0.13, 1), "Current Scale:");
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
+    ImGui::Text("Keys:");
+    ImGui::Text("W-A-S-D to move camera:");
+    ImGui::Text("C to open camera movement window");
+    ImGui::Text("P to open mesh position movement window");
+    ImGui::Text("Z to open scaling window");
+    ImGui::Text("R to open rotation window");
+    ImGui::PopStyleColor();
+    ImGui::End();
+    ImGui::PopStyleColor();
 }

@@ -1,5 +1,5 @@
-Texture2D<float4> Texture : register(t0);
 SamplerState TextureSampler : register(s0);
+Texture2D<float4> Texture : register(t0);
 
 cbuffer ConstantBuffer : register(b0)
 {
@@ -16,5 +16,6 @@ struct PS_INPUT
 
 float4 main(PS_INPUT input) : SV_TARGET
 {
-    return Texture.Sample(TextureSampler, input.coord);
+    float3 out_color = Texture.Sample(TextureSampler, input.coord);
+    return float4(out_color,1.0f);
 }
