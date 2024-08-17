@@ -7,6 +7,7 @@
 #include <d3dcompiler.h>
 #include <fstream>
 #include <DirectXTex.h>
+#include <wrl/client.h>
 
 
 struct Vertex {
@@ -50,12 +51,81 @@ App::~App()
 }
 
 // Utility function to load a compiled shader
-std::vector<char> LoadShader(const std::wstring& filename) {
-    std::ifstream shaderFile(filename, std::ios::binary);
-    if (!shaderFile.is_open()) {
-        throw std::exception("Failed to open shader file.");
+std::wstring GetFileExtension(const std::wstring& filename) {
+    //find last dot
+    size_t dotPosition = filename.find_last_of(L".");
+
+    //if not out of range return a new substring
+    if (dotPosition != std::wstring::npos) {
+        return filename.substr(dotPosition + 1);
     }
-    return std::vector<char>((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
+    return L""; //no extension 
+}
+
+enum class Shader_Type
+{
+    //version 5.0 vertex shader
+    vs_5_0,
+    //version 5.0 pixel shader
+    ps_5_0
+};
+std::vector<char> LoadShader(const std::wstring& filename, Shader_Type type, const std::string& entry) {
+    std::wstring extension = GetFileExtension(filename);
+
+    if (extension == L"cso") {
+        //fopen the file in binary mode.
+        std::ifstream shaderFile(filename, std::ios::binary);
+
+        //check if the file was opened successfully.
+        if (!shaderFile.is_open()) {
+            throw std::runtime_error("Failed to open shader file.");
+        }
+        //read the contents of the file into a vector.
+        return std::vector<char>((std::istreambuf_iterator<char>(shaderFile)),
+            std::istreambuf_iterator<char>());
+    }
+    else if (extension == L"hlsl")
+    {
+        const char* ty = NULL;
+        if (type == Shader_Type::vs_5_0) {
+            ty = "vs_5_0";
+        }
+        else if (type == Shader_Type::ps_5_0) {
+            ty = "ps_5_0";
+        }
+
+        //create smart pointers
+        Microsoft::WRL::ComPtr<ID3DBlob> shaderBlob;
+        Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
+        HRESULT hr = D3DCompileFromFile(
+            filename.c_str(), //file name
+            nullptr, //macros
+            nullptr,//header includes
+            entry.c_str(),
+            ty,//target shader model
+            0, //compile options
+            0, //idk
+            &shaderBlob, //shader byte code 
+            &errorBlob //for error messages if any
+        );
+        if (FAILED(hr)) {
+            if (errorBlob) {
+                //retrive error msg
+                throw std::runtime_error(reinterpret_cast<const char*>(errorBlob->GetBufferPointer()));
+            }
+            else {
+                throw std::runtime_error("Error during shader compilation.");
+            }
+        }
+        //Return the compiled shader bytecode as a vector of chars
+        return std::vector<char>(reinterpret_cast<char*>(shaderBlob->GetBufferPointer()),
+            reinterpret_cast<char*>(shaderBlob->GetBufferPointer()) + shaderBlob->GetBufferSize());
+    }
+    else {
+        throw std::runtime_error("Unsupported shader file format.");
+        //empty
+        return std::vector<char>();
+    }
 }
 
 void App::onCreate()
@@ -86,12 +156,11 @@ void App::onCreate()
     if (deviceContext == nullptr) {
         IMGUI_DEBUG_LOG("deviceContext is nullptr after creating devices");
     }
-
     // Load compiled vertex shader
-    std::vector<char> vsBytecode = LoadShader(L"VertexShader.cso");
+    std::vector<char> vsBytecode = LoadShader(L"VertexShader.cso", Shader_Type::vs_5_0, "main");
     vertex_shader = new VertexShader(vsBytecode.data(), vsBytecode.size(), g_pd3dDevice);
     // Load compiled pixel shader
-    std::vector<char> psBytecode = LoadShader(L"PixelShader.cso");
+    std::vector<char> psBytecode = LoadShader(L"PixelShader.cso", Shader_Type::ps_5_0, "main");
     pixel_shader = new PixelShader(psBytecode.data(), psBytecode.size(), g_pd3dDevice);
 
 
@@ -137,13 +206,21 @@ void App::onCreate()
         throw std::exception("Failed to initialize ImGui DX11 backend");
     }
     deviceContext->setViewportSize(1280, 720);
+    MeshInstance instance1 = { new Mesh(L"Assets\\Meshes\\box.obj", g_pd3dDevice, vsBytecode.data(), vsBytecode.size()),
+                               DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+                               DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+                               DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f) };
 
-    mesh = new Mesh(L"Assets\\Meshes\\box.obj", g_pd3dDevice, vsBytecode.data(), vsBytecode.size());
-    texture = new Texture(L"Assets\\Textures\\house_windows.jpg", g_pd3dDevice, g_pd3dDeviceContext);
-    textures.push_back(texture);
-    if (mesh == nullptr) {
-        IMGUI_DEBUG_LOG("Mesh is null after creation");
-    }
+    MeshInstance instance2 = { new Mesh(L"Assets\\Meshes\\sphere.obj", g_pd3dDevice, vsBytecode.data(), vsBytecode.size()),
+                               DirectX::XMFLOAT3(2.0f, 0.0f, -2.0f),
+                               DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+                               DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f) };
+    Texture* texture1 = new Texture(L"Assets\\Textures\\house_windows.jpg", g_pd3dDevice, g_pd3dDeviceContext);
+    instance1.textures.push_back(texture1);
+    meshInstances.push_back(instance1);
+    Texture* texture2 = new Texture(L"Assets\\Textures\\Time.jpg", g_pd3dDevice, g_pd3dDeviceContext);
+    instance2.textures.push_back(texture2);
+    meshInstances.push_back(instance2);
 
     /*D3D11_BLEND_DESC blend_desc;
     blend_desc.AlphaToCoverageEnable = FALSE;
@@ -170,17 +247,10 @@ void App::onCreate()
     g_pd3dDevice->CreateRasterizerState(&rasterDesc, &pRasterState);
     g_pd3dDeviceContext->RSSetState(pRasterState);
 
-    deviceContext->setConstantBuffer(vertex_shader, constant_buffer);
-    deviceContext->setConstantBuffer(pixel_shader, constant_buffer);
-    deviceContext->setTexture(pixel_shader, textures, (UINT)textures.size());
     deviceContext->setVertexShader(vertex_shader);
     deviceContext->setPixelShader(pixel_shader);
-    deviceContext->setVertexBuffer(mesh->getVertexBuffer());
-    deviceContext->setIndexBuffer(mesh->getIndexBuffer());
-
-    if (mesh->m_index_buffer->getSizeIndexList() < 1) {
-        IMGUI_DEBUG_LOG("Mesh index buffer is empty after creation");
-    }
+    deviceContext->setConstantBuffer(vertex_shader, constant_buffer);
+    deviceContext->setConstantBuffer(pixel_shader, constant_buffer);
 
     // Create view and perspective matrices
     CreateViewAndPerspective();
@@ -200,7 +270,7 @@ void App::onUpdate()
     }
     if (gameStarted) {
         //camera view window
-        if (ImGui::IsKeyReleased(ImGuiKey_C)) {
+        /*if (ImGui::IsKeyReleased(ImGuiKey_C)) {
             showWindowCamera = !showWindowCamera; // toggle the window visibility
         }
         if (showWindowCamera) {
@@ -226,15 +296,7 @@ void App::onUpdate()
         }
         if (showWindowScale) {
             imgui_window_render_scale();
-        }
-        //helper window
-        if (ImGui::IsKeyReleased(ImGuiKey_Tab)) {
-            showHelperMenu = !showHelperMenu; // toggle the window visibility
-        }
-        if (showHelperMenu) {
-            imgui_show_helper_window();
-        }
-
+        }*/
         // Rendering
         render();
     }
@@ -269,12 +331,6 @@ void App::onDestroy()
     if (pixel_shader) {
         delete pixel_shader;
     }
-    if (mesh) {
-        delete mesh;
-    }
-    if (texture) {
-        delete texture;
-    }
 
     graphicsEngine.release();
 
@@ -290,11 +346,6 @@ void App::render() {
     deviceContext->clearRenderTargetColor(graphicsEngine.swapChain, 0.25f, 0.25f, 0.75f, 1.0f);
     deviceContext->clearDepthStencilView(depth_stencil_view);
     g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, depth_stencil_view);
-    g_pd3dDeviceContext->IASetInputLayout(mesh->getVertexBuffer()->input_layout);
-    g_pd3dDeviceContext->RSSetState(pRasterState);
-    deviceContext->setTexture(pixel_shader, textures, textures.size());
-    deviceContext->setVertexShader(vertex_shader);
-    deviceContext->setPixelShader(pixel_shader);
 
     if (ImGui::IsKeyPressed(ImGuiKey_D)) {
         forward += 1.0f;
@@ -314,14 +365,6 @@ void App::render() {
     if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
         upward -= 1.0f;
     }
-    DirectX::XMMATRIX g_Player;
-    // Initialize the world matrix
-    g_Player = DirectX::XMMatrixIdentity();
-    DirectX::XMMATRIX mRotate = DirectX::XMMatrixRotationRollPitchYaw(m_rot_y,m_rot_x,m_rot_z);
-    DirectX::XMMATRIX mTranslate = DirectX::XMMatrixTranslation(0.0f, 0.0f, 0.0f);
-    DirectX::XMMATRIX mScale = DirectX::XMMatrixScaling(m_scale_x, m_scale_y, m_scale_z);
-    g_Player = mScale * mRotate * mTranslate;
-
     DirectX::XMVECTOR eye = DirectX::XMVectorSet(5.0f + rightward, 5.0f + upward, 2.5f + forward, 1.0f);
     DirectX::XMVECTOR at = DirectX::XMVectorSet(1.5f, 1.5f, 1.5f, 1.0f);
     DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
@@ -330,21 +373,29 @@ void App::render() {
     DirectX::XMMATRIX projMatrix = DirectX::XMLoadFloat4x4(&proj); // Load projection matrix
     DirectX::XMMATRIX worldViewProjMatrix = DirectX::XMMatrixIdentity();
     
-    mRotate = DirectX::XMMatrixRotationRollPitchYaw(m_rot_y, m_rot_x, m_rot_z);
-    mTranslate = DirectX::XMMatrixTranslation(x, y, z);
-    mScale = DirectX::XMMatrixScaling(m_scale_x, m_scale_y, m_scale_z);
-    g_Player = mScale * mRotate * mTranslate;
+    // Loop through each mesh instance
+    for (const auto& instance : meshInstances) {
+        // Compute the world matrix for each instance
+        DirectX::XMMATRIX mRotate = DirectX::XMMatrixRotationRollPitchYaw(instance.rotation.x, instance.rotation.y, instance.rotation.z);
+        DirectX::XMMATRIX mTranslate = DirectX::XMMatrixTranslation(instance.position.x, instance.position.y, instance.position.z);
+        DirectX::XMMATRIX mScale = DirectX::XMMatrixScaling(instance.scale.x, instance.scale.y, instance.scale.z);
+        DirectX::XMMATRIX worldViewProjMatrix = mScale * mRotate * mTranslate * viewMatrix * projMatrix;
 
-    worldViewProjMatrix = g_Player * viewMatrix * projMatrix; // Combine matrices
+        // Update the constant buffer
+        Constant cb1;
+        DirectX::XMStoreFloat4x4(&cb1.worldViewProj, DirectX::XMMatrixTranspose(worldViewProjMatrix));
+        constant_buffer->update(deviceContext, &cb1);
 
-    Constant cb1;
-    DirectX::XMStoreFloat4x4(&cb1.worldViewProj, DirectX::XMMatrixTranspose(worldViewProjMatrix));
-    constant_buffer->update(deviceContext, &cb1);
-    //cube drawing
-    //deviceContext->drawIndexedTriangleList(ARRAYSIZE(indices), 0, 0);
-    //mesh drawing
-    deviceContext->drawIndexedTriangleList(mesh->getIndexBuffer()->m_size_list, 0, 0);
+        // Bind vertex and index buffers
+        deviceContext->setVertexBuffer(instance.mesh->getVertexBuffer());
+        deviceContext->setIndexBuffer(instance.mesh->getIndexBuffer());
 
+        // Bind the textures associated with the current mesh
+        deviceContext->setTexture(pixel_shader, instance.textures, (UINT)instance.textures.size());
+
+        // Draw the mesh
+        deviceContext->drawIndexedTriangleList(instance.mesh->getIndexBuffer()->m_size_list, 0, 0);
+    }
 
 }
 
@@ -389,14 +440,6 @@ void App::imgui_window_render_position()
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.451f, 0.3098f, 0.5882f, 1.0f));
     //cube position
     ImGui::Begin("Change mesh position");
-    // Display contents in a scrolling region
-    ImGui::TextColored(ImVec4(1, 1, 1, 1), "Current Position:");
-    ImGui::SliderFloat(" X", &x, -10.0f, 10.0f);
-    ImGui::SliderFloat(" Y", &y, -10.0f, 10.0f);
-    ImGui::SliderFloat(" Z", &z, -10.0f, 10.0f);
-    ImGui::InputFloat("X", &x);
-    ImGui::InputFloat("Y", &y);
-    ImGui::InputFloat("Z", &z);
     ImGui::End();
     ImGui::PopStyleColor();
 }
@@ -406,13 +449,6 @@ void App::imgui_window_render_rotation()
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.133f, 0.545f, 0.133f, 1.0f));
     //cube position
     ImGui::Begin("Change mesh rotation around axes:");
-    // Display contents in a scrolling region
-    ImGui::TextColored(ImVec4(1, 1, 1, 1), "Current Rotation:");
-    ImGui::SliderFloat(" Rotation X (Roll)", &m_rot_x, -10.0f, 10.0f);
-    ImGui::TextColored(ImVec4(1, 1, 1, 1), "Current Rotation:");
-    ImGui::SliderFloat(" Rotation Y (Pitch)", &m_rot_y, -10.0f, 10.0f);
-    ImGui::TextColored(ImVec4(1, 1, 1, 1), "Current Rotation:");
-    ImGui::SliderFloat(" Rotation Z (Yaw)", &m_rot_z, -10.0f, 10.0f);
     ImGui::End();
     ImGui::PopStyleColor();
 }
@@ -422,12 +458,6 @@ void App::imgui_window_render_scale()
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 1.0f, 1.0f, 1.0f));
     //cube scale
     ImGui::Begin("Change mesh scale");
-    // Display contents in a scrolling region
-    ImGui::TextColored(ImVec4(0.13, 0.13, 0.13, 1), "Current Scale:");
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-    ImGui::SliderFloat("Scale X", &m_scale_x, 0.0f, 10.0f);
-    ImGui::SliderFloat("Scale Y", &m_scale_y, 0.0f, 10.0f);
-    ImGui::SliderFloat("Scale Z", &m_scale_z, 0.0f, 10.0f);
     ImGui::PopStyleColor();
     ImGui::End();
     ImGui::PopStyleColor();
@@ -447,6 +477,13 @@ void App::imgui_start_menu()
     if (ImGui::Button("START")) {
         gameStarted = true;
         showMenu = false;
+    }
+    if (ImGui::Button("OPTIONS")) {
+        options_shown = !options_shown; // toggle the window visibility
+    }
+    if (options_shown) {
+        // Show the window only if options_shown is true
+        imgui_show_helper_window();
     }
     if (ImGui::Button("QUIT")) {
         quit_game = true;

@@ -16,6 +16,7 @@
 #include <exception>
 #include <directxmath.h>
 #include <vector>
+#include <DirectXTex.h>
 
 class App : public Window
 {
@@ -62,10 +63,14 @@ private:
 	VertexShader* vertex_shader = nullptr;
 	PixelShader* pixel_shader = nullptr;
 private:
-	Mesh* mesh = nullptr;
-	std::vector<Texture*> textures;
-	Texture* texture = nullptr;
-	Material* material = nullptr;
+	struct MeshInstance {
+		Mesh* mesh;
+		DirectX::XMFLOAT3 position;
+		DirectX::XMFLOAT3 rotation;
+		DirectX::XMFLOAT3 scale;
+		std::vector<Texture*> textures; // List of textures for this mesh
+	};
+	std::vector<MeshInstance> meshInstances;
 private:
 	bool g_SwapChainOccluded = false;
 	UINT g_ResizeWidth = 0, g_ResizeHeight = 0;
@@ -98,6 +103,7 @@ private:
 	bool showMenu = true;
 	bool gameStarted = false;
 	bool quit_game = false;
+	bool options_shown = false;
 
 	float light_rot_y = 0.0f;
 

@@ -1,5 +1,5 @@
-SamplerState TextureSampler : register(s0);
 Texture2D<float4> Texture : register(t0);
+SamplerState TextureSampler : register(s0);
 
 cbuffer ConstantBuffer : register(b0)
 {

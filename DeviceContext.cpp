@@ -130,14 +130,8 @@ void DeviceContext::setTexture(const PixelShader* pixel_shader, const std::vecto
 	ID3D11SamplerState* list_sampler[32]{};
 	for (unsigned int i = 0; i < num_texture; i++)
 	{
-		if (textures[i] && textures[i]->m_shader_res_view && textures[i]->m_sampler_state) {
-			list_res[i] = textures[i]->m_shader_res_view;
-			list_sampler[i] = textures[i]->m_sampler_state;
-		}
-		else {
-			IMGUI_DEBUG_LOG(" empty ");
-		}
-
+		list_res[i] = textures[i]->m_shader_res_view;
+		list_sampler[i] = textures[i]->m_sampler_state;
 	}
 	device_context->PSSetShaderResources(0, num_texture, list_res);
 	device_context->PSSetSamplers(0, num_texture, list_sampler);

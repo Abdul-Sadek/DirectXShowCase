@@ -6,6 +6,7 @@ int main() {
 		try
 		{
 			App app;
+			//CoInitialize(NULL);
 			while (app.isRun());
 		}
 		catch (...)
