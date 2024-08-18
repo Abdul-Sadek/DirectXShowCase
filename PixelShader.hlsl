@@ -49,7 +49,7 @@ float4 main(PS_INPUT input) : SV_TARGET
     float3 finalColor = (texColor.rgb * diffuse) + specular;
 
     // Optionally mix with vertex color if needed
-    //finalColor *= input.color.rgb;
+    finalColor *= input.color.rgb;
 
     // Return the final color with the texture's alpha value
     return float4(finalColor, texColor.a);
