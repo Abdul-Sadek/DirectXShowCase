@@ -16,10 +16,22 @@ struct Vertex {
     Vector3D normal;
     Vector4D Color;
 };
+struct Light
+{
+    DirectX::XMFLOAT3 Position;  // Light position (for point light)
+    float Padding1;              // Padding for alignment
+    DirectX::XMFLOAT3 Direction; // Light direction (for directional light)
+    float Padding2;              // Padding for alignment
+    DirectX::XMFLOAT3 Color;     // Light color
+    float Intensity;             // Light intensity
+};
 __declspec(align(16))
 struct Constant
 {
-    DirectX::XMFLOAT4X4 worldViewProj;
+    DirectX::XMFLOAT4X4 worldViewProj; // Combined world-view-projection matrix
+    Light light;                       // The light structure
+    DirectX::XMFLOAT3 cameraPos;       // Camera position for specular calculations
+    float Padding3;                    // Padding for alignment
 };
 
 Vertex vertices[] = {
@@ -297,6 +309,12 @@ void App::onUpdate()
         if (showWindowScale) {
             imgui_window_render_scale();
         }*/
+        if (ImGui::IsKeyReleased(ImGuiKey_L)) {
+            showWindowLight = !showWindowLight; // toggle the window visibility
+        }
+        if (showWindowLight) {
+            imgui_show_light_window();
+        }
         // Rendering
         render();
     }
@@ -343,7 +361,7 @@ void App::onSize() {}
 
 void App::render() {
 
-    deviceContext->clearRenderTargetColor(graphicsEngine.swapChain, 0.25f, 0.25f, 0.75f, 1.0f);
+    deviceContext->clearRenderTargetColor(graphicsEngine.swapChain, 0.298f, 0.46f, 0.488f, 1.0f);
     deviceContext->clearDepthStencilView(depth_stencil_view);
     g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, depth_stencil_view);
 
@@ -369,6 +387,10 @@ void App::render() {
     DirectX::XMVECTOR at = DirectX::XMVectorSet(1.5f, 1.5f, 1.5f, 1.0f);
     DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
+    // Store the camera position in a XMFLOAT3
+    DirectX::XMFLOAT3 cameraPosition;
+    DirectX::XMStoreFloat3(&cameraPosition, eye);
+
     DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixLookAtRH(eye, at, up);
     DirectX::XMMATRIX projMatrix = DirectX::XMLoadFloat4x4(&proj); // Load projection matrix
     DirectX::XMMATRIX worldViewProjMatrix = DirectX::XMMatrixIdentity();
@@ -385,6 +407,18 @@ void App::render() {
         Constant cb1;
         DirectX::XMStoreFloat4x4(&cb1.worldViewProj, DirectX::XMMatrixTranspose(worldViewProjMatrix));
         constant_buffer->update(deviceContext, &cb1);
+        cb1.light.Position = DirectX::XMFLOAT3(light_pos_x, light_pos_y, light_pos_z);
+        cb1.light.Direction = DirectX::XMFLOAT3(light_dir_x, light_dir_y, light_dir_z);
+        cb1.light.Color = DirectX::XMFLOAT3(m_light_color_r, m_light_color_g, m_light_color_b);
+        cb1.light.Intensity = light_intensity;
+        cb1.cameraPos = cameraPosition; // Update camera position
+
+        // Update the GPU-side constant buffer with the new data
+        constant_buffer->update(deviceContext, &cb1);
+
+        // Set the constant buffer for both vertex and pixel shaders
+        deviceContext->setConstantBuffer(vertex_shader,constant_buffer);
+        deviceContext->setConstantBuffer(pixel_shader, constant_buffer);
 
         // Bind vertex and index buffers
         deviceContext->setVertexBuffer(instance.mesh->getVertexBuffer());
@@ -499,15 +533,36 @@ void App::imgui_show_helper_window()
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.75f, 0.83f, 0.83f, 1.0f));
     //cube scale
     ImGui::Begin("HELPER WINDOW");
-    // Display contents in a scrolling region
-    ImGui::TextColored(ImVec4(0.13, 0.13, 0.13, 1), "Current Scale:");
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
     ImGui::Text("Keys:");
     ImGui::Text("W-A-S-D to move camera:");
-    ImGui::Text("C to open camera movement window");
-    ImGui::Text("P to open mesh position movement window");
-    ImGui::Text("Z to open scaling window");
-    ImGui::Text("R to open rotation window");
+    ImGui::Text("L to open light properties window");
+    ImGui::PopStyleColor();
+    ImGui::End();
+    ImGui::PopStyleColor();
+}
+
+void App::imgui_show_light_window()
+{
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.75f, 0.69f, 0.42f, 1.0f));
+    //cube scale
+    ImGui::Begin("Lighting Window");
+    // Display contents in a scrolling region
+    ImGui::TextColored(ImVec4(0.13, 0.13, 0.13, 1), "Current Position:");
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
+    ImGui::SliderFloat("X Position: ", &light_pos_x,-10.0f,10.0f);
+    ImGui::SliderFloat("Y Position: ", &light_pos_y, -10.0f, 10.0f);
+    ImGui::SliderFloat("Z Position: ", &light_pos_z, -10.0f, 10.0f);
+    ImGui::TextColored(ImVec4(0.13, 0.13, 0.13, 1), "Current Direction:");
+    ImGui::SliderFloat("X Direction: ", &light_dir_x, -10.0f, 10.0f);
+    ImGui::SliderFloat("Y Direction: ", &light_dir_y, -10.0f, 10.0f);
+    ImGui::SliderFloat("Z Direction: ", &light_dir_z, -10.0f, 10.0f);
+    ImGui::TextColored(ImVec4(0.13, 0.13, 0.13, 1), "Current Color:");
+    ImGui::SliderFloat("R: ", &m_light_color_r, 0.0f, 1.0f);
+    ImGui::SliderFloat("G: ", &m_light_color_g, 0.0f, 1.0f);
+    ImGui::SliderFloat("B: ", &m_light_color_b, 0.0f, 1.0f);
+    ImGui::TextColored(ImVec4(0.13, 0.13, 0.13, 1), "Current Intensity:");
+    ImGui::SliderFloat("Radius: ", &light_intensity, 0.0f, 50.0f);
     ImGui::PopStyleColor();
     ImGui::End();
     ImGui::PopStyleColor();
