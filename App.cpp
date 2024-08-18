@@ -409,6 +409,9 @@ void App::render() {
         constant_buffer->update(deviceContext, &cb1);
         cb1.light.Position = DirectX::XMFLOAT3(light_pos_x, light_pos_y, light_pos_z);
         cb1.light.Direction = DirectX::XMFLOAT3(light_dir_x, light_dir_y, light_dir_z);
+        DirectX::XMVECTOR lightDirVec = DirectX::XMLoadFloat3(&cb1.light.Direction);
+        lightDirVec = DirectX::XMVector3Normalize(lightDirVec);
+        DirectX::XMStoreFloat3(&cb1.light.Direction, lightDirVec);
         cb1.light.Color = DirectX::XMFLOAT3(m_light_color_r, m_light_color_g, m_light_color_b);
         cb1.light.Intensity = light_intensity;
         cb1.cameraPos = cameraPosition; // Update camera position
@@ -440,7 +443,7 @@ void App::updateSkybox() {}
 void App::CreateViewAndPerspective()
 {
     // Use DirectXMath to create view and perspective matrices.
-    DirectX::XMVECTOR eye = DirectX::XMVectorSet(5.0f, 5.0f, 2.5f, 1.0f);
+    DirectX::XMVECTOR eye = DirectX::XMVectorSet(2.0f, 2.0f, 2.5f, 1.0f);
     DirectX::XMVECTOR at = DirectX::XMVectorSet(1.5f, 1.5f, 1.5f, 1.0f);
     DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
@@ -550,19 +553,19 @@ void App::imgui_show_light_window()
     // Display contents in a scrolling region
     ImGui::TextColored(ImVec4(0.13, 0.13, 0.13, 1), "Current Position:");
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-    ImGui::SliderFloat("X Position: ", &light_pos_x,-10.0f,10.0f);
-    ImGui::SliderFloat("Y Position: ", &light_pos_y, -10.0f, 10.0f);
-    ImGui::SliderFloat("Z Position: ", &light_pos_z, -10.0f, 10.0f);
+    ImGui::SliderFloat("X Position: ", &light_pos_x,-5.0f,10.0f);
+    ImGui::SliderFloat("Y Position: ", &light_pos_y, -5.0f, 10.0f);
+    ImGui::SliderFloat("Z Position: ", &light_pos_z, -5.0f, 10.0f);
     ImGui::TextColored(ImVec4(0.13, 0.13, 0.13, 1), "Current Direction:");
-    ImGui::SliderFloat("X Direction: ", &light_dir_x, -10.0f, 10.0f);
-    ImGui::SliderFloat("Y Direction: ", &light_dir_y, -10.0f, 10.0f);
-    ImGui::SliderFloat("Z Direction: ", &light_dir_z, -10.0f, 10.0f);
+    ImGui::SliderFloat("X Direction: ", &light_dir_x, -5.0f, 10.0f);
+    ImGui::SliderFloat("Y Direction: ", &light_dir_y, -5.0f, 10.0f);
+    ImGui::SliderFloat("Z Direction: ", &light_dir_z, -5.0f, 10.0f);
     ImGui::TextColored(ImVec4(0.13, 0.13, 0.13, 1), "Current Color:");
     ImGui::SliderFloat("R: ", &m_light_color_r, 0.0f, 1.0f);
     ImGui::SliderFloat("G: ", &m_light_color_g, 0.0f, 1.0f);
     ImGui::SliderFloat("B: ", &m_light_color_b, 0.0f, 1.0f);
     ImGui::TextColored(ImVec4(0.13, 0.13, 0.13, 1), "Current Intensity:");
-    ImGui::SliderFloat("Intensity ", &light_intensity, 0.0f, 50.0f);
+    ImGui::SliderFloat("Intensity ", &light_intensity, 0.0f, 5.0f);
     ImGui::PopStyleColor();
     ImGui::End();
     ImGui::PopStyleColor();

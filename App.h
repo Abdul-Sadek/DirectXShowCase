@@ -106,9 +106,9 @@ private:
 	bool quit_game = false;
 	bool options_shown = false;
 
-	float light_pos_x = 1.0f;
+	float light_pos_x = 0.0f;
 	float light_pos_y = 1.0f;
-	float light_pos_z = 1.0f;
+	float light_pos_z = 0.0f;
 
 	float light_dir_x = 1.0f;
 	float light_dir_y = 1.0f;
