@@ -562,7 +562,7 @@ void App::imgui_show_light_window()
     ImGui::SliderFloat("G: ", &m_light_color_g, 0.0f, 1.0f);
     ImGui::SliderFloat("B: ", &m_light_color_b, 0.0f, 1.0f);
     ImGui::TextColored(ImVec4(0.13, 0.13, 0.13, 1), "Current Intensity:");
-    ImGui::SliderFloat("Radius: ", &light_intensity, 0.0f, 50.0f);
+    ImGui::SliderFloat("Intensity ", &light_intensity, 0.0f, 50.0f);
     ImGui::PopStyleColor();
     ImGui::End();
     ImGui::PopStyleColor();
