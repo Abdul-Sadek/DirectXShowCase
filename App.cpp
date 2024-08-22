@@ -8,6 +8,7 @@
 #include <fstream>
 #include <DirectXTex.h>
 #include <wrl/client.h>
+#include <xaudio2.h>
 
 
 struct Vertex {
@@ -266,6 +267,7 @@ void App::onCreate()
 
     // Create view and perspective matrices
     CreateViewAndPerspective();
+
     
 }
 
@@ -308,13 +310,13 @@ void App::onUpdate()
         }
         if (showWindowScale) {
             imgui_window_render_scale();
-        }*/
+        }
         if (ImGui::IsKeyReleased(ImGuiKey_L)) {
             showWindowLight = !showWindowLight; // toggle the window visibility
         }
         if (showWindowLight) {
             imgui_show_light_window();
-        }
+        }*/
         // Rendering
         render();
     }
@@ -365,6 +367,7 @@ void App::render() {
     deviceContext->clearDepthStencilView(depth_stencil_view);
     g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, depth_stencil_view);
 
+    //needs fixing using switch statement
     if (ImGui::IsKeyPressed(ImGuiKey_D)) {
         forward += 1.0f;
     }
@@ -550,22 +553,7 @@ void App::imgui_show_light_window()
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.75f, 0.69f, 0.42f, 1.0f));
     //cube scale
     ImGui::Begin("Lighting Window");
-    // Display contents in a scrolling region
-    ImGui::TextColored(ImVec4(0.13, 0.13, 0.13, 1), "Current Position:");
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-    ImGui::SliderFloat("X Position: ", &light_pos_x,-5.0f,10.0f);
-    ImGui::SliderFloat("Y Position: ", &light_pos_y, -5.0f, 10.0f);
-    ImGui::SliderFloat("Z Position: ", &light_pos_z, -5.0f, 10.0f);
-    ImGui::TextColored(ImVec4(0.13, 0.13, 0.13, 1), "Current Direction:");
-    ImGui::SliderFloat("X Direction: ", &light_dir_x, -5.0f, 10.0f);
-    ImGui::SliderFloat("Y Direction: ", &light_dir_y, -5.0f, 10.0f);
-    ImGui::SliderFloat("Z Direction: ", &light_dir_z, -5.0f, 10.0f);
-    ImGui::TextColored(ImVec4(0.13, 0.13, 0.13, 1), "Current Color:");
-    ImGui::SliderFloat("R: ", &m_light_color_r, 0.0f, 1.0f);
-    ImGui::SliderFloat("G: ", &m_light_color_g, 0.0f, 1.0f);
-    ImGui::SliderFloat("B: ", &m_light_color_b, 0.0f, 1.0f);
-    ImGui::TextColored(ImVec4(0.13, 0.13, 0.13, 1), "Current Intensity:");
-    ImGui::SliderFloat("Intensity ", &light_intensity, 0.0f, 5.0f);
     ImGui::PopStyleColor();
     ImGui::End();
     ImGui::PopStyleColor();

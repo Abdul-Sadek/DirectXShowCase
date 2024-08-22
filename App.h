@@ -11,7 +11,6 @@
 #include "Material.h"
 #include <d3d11.h>
 #include <tchar.h>
-#include <d3d11.h>
 #include <dxgi.h>
 #include <exception>
 #include <directxmath.h>
@@ -118,7 +117,7 @@ private:
 	float m_light_color_g = 1.0f;
 	float m_light_color_b = 1.0f;
 
-	float light_intensity = 5.0f;
+	float light_intensity = 1.0f;
 
 	float forward = 0.0f;
 	float rightward = 0.0f;
