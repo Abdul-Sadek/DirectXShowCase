@@ -43,6 +43,6 @@ private:
     std::vector<RigidBody*> rigidbodies;
     std::vector<Collision*> collisions;
     float airResistance;
-    bool enableCollisionDetection;
+    bool enable_collision_detection;
 };
 

@@ -69,53 +69,6 @@ bool GraphicsEngine::createDevices(HWND hwnd, UINT width, UINT height)
     return true;
 }
 
-/*void GraphicsEngine::setMaterial(const Material* material)
-{
-    // Define the rasterizer state description
-    D3D11_RASTERIZER_DESC rasterDesc = {};
-
-    switch (material->m_cull_mode)
-    {
-        rasterDesc.CullMode = D3D11_CULL_NONE;
-        break;
-    case CULL_MODE_FRONT:
-        rasterDesc.CullMode = D3D11_CULL_FRONT;
-        break;
-    case CULL_MODE_BACK:
-        rasterDesc.CullMode = D3D11_CULL_BACK;
-        break;
-    default:
-        rasterDesc.CullMode = D3D11_CULL_BACK; // Default to back culling if none specified
-        break;
-    }
-
-    rasterDesc.FillMode = D3D11_FILL_SOLID;
-    rasterDesc.FrontCounterClockwise = false;
-    rasterDesc.DepthClipEnable = true;
-
-    // Create the rasterizer state
-    ID3D11RasterizerState* rasterState;
-    HRESULT hr = device->CreateRasterizerState(&rasterDesc, &rasterState);
-    if (SUCCEEDED(hr))
-    {
-        // Set the rasterizer state
-        deviceContext->RSSetState(rasterState);
-        rasterState->Release(); // Release the raster state after setting it
-    }
-
-    //binding constant buffer to vertex, pixel shaders
-    deviceContextClass->setConstantBuffer(material->m_vertex_shader, material->m_constant_buffer);
-    deviceContextClass->setConstantBuffer(material->m_pixel_shader, material->m_constant_buffer);
-
-    //setting shaders
-    deviceContextClass->setVertexShader(material->m_vertex_shader);
-    deviceContextClass->setPixelShader(material->m_pixel_shader);
-
-    //binding the texture to pixel shader
-    deviceContextClass->setTexture(material->m_pixel_shader, material->m_textures, unsigned int(material->m_textures.size()));
-
-}*/
-
 
 GraphicsEngine::~GraphicsEngine()
 {

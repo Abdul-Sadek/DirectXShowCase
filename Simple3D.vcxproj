@@ -140,6 +140,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
+    <ClCompile Include="BoxCollider.cpp" />
+    <ClCompile Include="Collision.cpp" />
+    <ClCompile Include="CollisionShape.cpp" />
     <ClCompile Include="ConstantBuffer.cpp" />
     <ClCompile Include="DeviceContext.cpp" />
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -156,8 +159,10 @@
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Physics.cpp" />
     <ClCompile Include="PixelShader.cpp" />
+    <ClCompile Include="PlaneCollider.cpp" />
     <ClCompile Include="RenderSystem.cpp" />
     <ClCompile Include="RigidBody.cpp" />
+    <ClCompile Include="SphereCollider.cpp" />
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
@@ -166,6 +171,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
+    <ClInclude Include="BoxCollider.h" />
+    <ClInclude Include="Collision.h" />
+    <ClInclude Include="CollisionShape.h" />
     <ClInclude Include="ConstantBuffer.h" />
     <ClInclude Include="DeviceContext.h" />
     <ClInclude Include="GraphicsEngine.h" />
@@ -183,8 +191,10 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Physics.h" />
     <ClInclude Include="PixelShader.h" />
+    <ClInclude Include="PlaneCollider.h" />
     <ClInclude Include="RenderSystem.h" />
     <ClInclude Include="RigidBody.h" />
+    <ClInclude Include="SphereCollider.h" />
     <ClInclude Include="SwapChain.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Vector2D.h" />

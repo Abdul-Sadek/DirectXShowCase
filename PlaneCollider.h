@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CollisionShape.h"
 #include <directxmath.h>
 class CollisionShape;
 

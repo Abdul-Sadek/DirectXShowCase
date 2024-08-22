@@ -3,6 +3,8 @@
 #include "RigidBody.h"
 #include <directxmath.h>
 
+class RigidBody;
+
 class Collision
 {
 public:

@@ -20,7 +20,6 @@ private:
 public:
 	void getVertexMeshLayoutShaderByteCodeAndSize(void** byte_code, size_t* size);
 	bool createDevices(HWND hwnd, UINT width, UINT height);
-	void setMaterial(const Material* material);
 public:
 	static GraphicsEngine* get();
 	static void create();

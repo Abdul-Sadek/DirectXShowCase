@@ -3,6 +3,9 @@
 #include "Collision.h"
 #include "CollisionShape.h"
 
+class Collision;
+class CollisionShape;
+
 class RigidBody
 {
 public:

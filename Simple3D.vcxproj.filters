@@ -49,6 +49,9 @@
     <Filter Include="Graphics Engine\Physics">
       <UniqueIdentifier>{23982d1a-5db0-4ced-adb3-3a185397f3db}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Graphics Engine\Physics\CollisionShape">
+      <UniqueIdentifier>{9ea15da3-4d7b-4b92-9162-a6326fa20fc5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp">
@@ -122,6 +125,21 @@
     </ClCompile>
     <ClCompile Include="RigidBody.cpp">
       <Filter>Graphics Engine\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Collision.cpp">
+      <Filter>Graphics Engine\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="CollisionShape.cpp">
+      <Filter>Graphics Engine\Physics\CollisionShape</Filter>
+    </ClCompile>
+    <ClCompile Include="SphereCollider.cpp">
+      <Filter>Graphics Engine\Physics\CollisionShape</Filter>
+    </ClCompile>
+    <ClCompile Include="PlaneCollider.cpp">
+      <Filter>Graphics Engine\Physics\CollisionShape</Filter>
+    </ClCompile>
+    <ClCompile Include="BoxCollider.cpp">
+      <Filter>Graphics Engine\Physics\CollisionShape</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -208,6 +226,21 @@
     </ClInclude>
     <ClInclude Include="RigidBody.h">
       <Filter>Graphics Engine\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Collision.h">
+      <Filter>Graphics Engine\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="CollisionShape.h">
+      <Filter>Graphics Engine\Physics\CollisionShape</Filter>
+    </ClInclude>
+    <ClInclude Include="SphereCollider.h">
+      <Filter>Graphics Engine\Physics\CollisionShape</Filter>
+    </ClInclude>
+    <ClInclude Include="PlaneCollider.h">
+      <Filter>Graphics Engine\Physics\CollisionShape</Filter>
+    </ClInclude>
+    <ClInclude Include="BoxCollider.h">
+      <Filter>Graphics Engine\Physics\CollisionShape</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

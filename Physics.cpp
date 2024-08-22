@@ -14,7 +14,7 @@ Physics::~Physics()
 
 void Physics::initialize()
 {
-    if (Physics::physics_engine) throw std::exception("Graphics Engine already created");
+    if (Physics::physics_engine) throw std::exception("Physics Engine already created");
     Physics::physics_engine = new Physics();
 }
 
