@@ -15,7 +15,13 @@ public:
     // Collision Information
     DirectX::XMFLOAT3 contactPoint;
     DirectX::XMFLOAT3 contactNormal;
-    float penetrationDepth;
+    mutable float penetrationDepth;
+
+    // Constructor
+    Collision(RigidBody* objA, RigidBody* objB,
+        const DirectX::XMFLOAT3& contactPoint,
+        const DirectX::XMFLOAT3& contactNormal,
+        float penetrationDepth);
 
     // Methods
     void resolve();

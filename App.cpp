@@ -145,6 +145,7 @@ void App::onCreate()
 {
     Window::onCreate();    
     graphicsEngine.create();
+    physics_engine.initialize();
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -220,20 +221,46 @@ void App::onCreate()
     }
     deviceContext->setViewportSize(1280, 720);
     MeshInstance instance1 = { new Mesh(L"Assets\\Meshes\\box.obj", g_pd3dDevice, vsBytecode.data(), vsBytecode.size()),
-                               DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
-                               DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
-                               DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f) };
+                               DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),  // Position
+                               DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),  // Rotation
+                               DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f),  // Scale
+                               {},                                   // Textures
+                               new RigidBody(1.0f, DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+                               DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+                               DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f),
+                               new BoxCollider(DirectX::XMFLOAT3(1.0f,1.0f,1.0f)))
+    };
 
     MeshInstance instance2 = { new Mesh(L"Assets\\Meshes\\sphere.obj", g_pd3dDevice, vsBytecode.data(), vsBytecode.size()),
-                               DirectX::XMFLOAT3(2.0f, 0.0f, -2.0f),
-                               DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
-                               DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f) };
+                               DirectX::XMFLOAT3(2.0f, 0.0f, -2.0f),  // Position
+                               DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),  // Rotation
+                               DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f),  // Scale
+                               {},                                   // Textures
+                               new RigidBody(1.0f, DirectX::XMFLOAT3(2.0f, 0.0f, -2.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+                               DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+                               DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f),
+                               new SphereCollider(1.0f))
+    };
+
+    MeshInstance instance3 = { new Mesh(L"Assets\\Meshes\\plane.obj", g_pd3dDevice, vsBytecode.data(), vsBytecode.size()),
+                               DirectX::XMFLOAT3(0.0f, -5.0f, 0.0f),  // Position
+                               DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),  // Rotation
+                               DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f),  // Scale
+                               {},                                   // Textures
+                               new RigidBody(1.0f, DirectX::XMFLOAT3(0.0f, -5.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+                               DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+                               DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f),
+                               new PlaneCollider(DirectX::XMFLOAT3(1.0f,1.0f,1.0f),1.0f))
+    };
     Texture* texture1 = new Texture(L"Assets\\Textures\\house_windows.jpg", g_pd3dDevice, g_pd3dDeviceContext);
     instance1.textures.push_back(texture1);
     meshInstances.push_back(instance1);
     Texture* texture2 = new Texture(L"Assets\\Textures\\Time.jpg", g_pd3dDevice, g_pd3dDeviceContext);
     instance2.textures.push_back(texture2);
     meshInstances.push_back(instance2);
+    Texture* texture3 = new Texture(L"Assets\\Textures\\grass.jpg", g_pd3dDevice, g_pd3dDeviceContext);
+    instance3.textures.push_back(texture3);
+    meshInstances.push_back(instance3);
 
     /*D3D11_BLEND_DESC blend_desc;
     blend_desc.AlphaToCoverageEnable = FALSE;
@@ -268,6 +295,9 @@ void App::onCreate()
     // Create view and perspective matrices
     CreateViewAndPerspective();
 
+    // Physics values
+    physics_engine.setGravity(gravity);
+    physics_engine.setAirResistance(air_resistance);
     
 }
 
@@ -283,42 +313,23 @@ void App::onUpdate()
         imgui_start_menu();
     }
     if (gameStarted) {
-        //camera view window
-        /*if (ImGui::IsKeyReleased(ImGuiKey_C)) {
-            showWindowCamera = !showWindowCamera; // toggle the window visibility
+        // Update Physics before rendering
+        float deltaTime = ::GetTickCount64();
+        physics_engine.update(deltaTime);
+        // Update mesh instance transforms based on physics results
+        for (auto& instance : meshInstances)
+        {
+            if (instance.rigidbody)
+            {
+                // Update instance position and rotation from rigidbody
+                instance.position = instance.rigidbody->position;
+                instance.rotation = instance.rigidbody->rotation;
+            }
         }
-        if (showWindowCamera) {
-            imgui_window_render_camera();
-        }
-        //position window
-        if (ImGui::IsKeyReleased(ImGuiKey_P)) {
-            showWindowPosition = !showWindowPosition; // toggle the window visibility
-        }
-        if (showWindowPosition) {
-            imgui_window_render_position();
-        }
-        //rotation window
-        if (ImGui::IsKeyReleased(ImGuiKey_R)) {
-            showWindowRotation = !showWindowRotation; // toggle the window visibility
-        }
-        if (showWindowRotation) {
-            imgui_window_render_rotation();
-        }
-        //scaling window
-        if (ImGui::IsKeyReleased(ImGuiKey_Z)) {
-            showWindowScale = !showWindowScale; // toggle the window visibility
-        }
-        if (showWindowScale) {
-            imgui_window_render_scale();
-        }
-        if (ImGui::IsKeyReleased(ImGuiKey_L)) {
-            showWindowLight = !showWindowLight; // toggle the window visibility
-        }
-        if (showWindowLight) {
-            imgui_show_light_window();
-        }*/
+        physics_engine.logPhysicsState();
         // Rendering
         render();
+        imgui_show_physics_window();
     }
     // (Your code clears your framebuffer, renders your other stuff etc.)
     // Rendering ImGui
@@ -558,3 +569,17 @@ void App::imgui_show_light_window()
     ImGui::End();
     ImGui::PopStyleColor();
 }
+
+void App::imgui_show_physics_window()
+{
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.75f, 0.69f, 0.42f, 1.0f));
+    ImGui::Begin("Physics Window");
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
+    ImGui::SliderFloat("Gravity",&gravity.y,-13.0f,5.0f);
+    ImGui::SliderFloat("Air Resistance", &air_resistance, 0.01f, 0.5f);
+    ImGui::PopStyleColor();
+    ImGui::End();
+    ImGui::PopStyleColor();
+}
+
+

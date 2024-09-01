@@ -9,6 +9,11 @@
 #include "Mesh.h"
 #include "Texture.h"
 #include "Material.h"
+#include "Physics.h"
+#include "CollisionShape.h"
+#include "BoxCollider.h"
+#include "SphereCollider.h"
+#include "PlaneCollider.h"
 #include <d3d11.h>
 #include <tchar.h>
 #include <dxgi.h>
@@ -43,8 +48,10 @@ public:
 	void imgui_start_menu();
 	void imgui_show_helper_window();
 	void imgui_show_light_window();
+	void imgui_show_physics_window();
 private:
 	GraphicsEngine graphicsEngine;
+	Physics physics_engine;
 	IDXGISwapChain* g_pSwapChain = nullptr;
 	ID3D11Device* g_pd3dDevice = nullptr;
 	ID3D11DeviceContext* g_pd3dDeviceContext = nullptr;
@@ -69,6 +76,8 @@ private:
 		DirectX::XMFLOAT3 rotation;
 		DirectX::XMFLOAT3 scale;
 		std::vector<Texture*> textures; // List of textures for this mesh
+		RigidBody* rigidbody;
+		CollisionShape* collision_shape;
 	};
 	std::vector<MeshInstance> meshInstances;
 private:
@@ -131,5 +140,7 @@ private:
 	float m_scale_y = 1.0f;
 	float m_scale_z = 1.0f;
 
+	DirectX::XMFLOAT3 gravity = DirectX::XMFLOAT3(0.0f, -9.81f, 0.0f);
+	float air_resistance = 0.1f;
 };
 
