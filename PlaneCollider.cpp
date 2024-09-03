@@ -1,5 +1,5 @@
 #include "PlaneCollider.h"
-#include "SphereCollider.h"
+#include <utility>
 
 // Constructor
 PlaneCollider::PlaneCollider(const DirectX::XMFLOAT3& normal, float d)
@@ -29,6 +29,39 @@ bool PlaneCollider::intersects(const CollisionShape& other) const
     }
 
     // Additional checks for other types of CollisionShapes can be added here
+    return false;
+}
+
+bool PlaneCollider::intersectsBox(const BoxCollider& box) const
+{
+    const BoxCollider* othershape = dynamic_cast<const BoxCollider*>(&box);
+    // Calculate the box's center point
+    DirectX::XMFLOAT3 centerA = getCenter();
+
+    // Calculate the distance from the box's center point to the plane
+    float distance = othershape->extents.x * centerA.x + othershape->extents.y * centerA.y + othershape->extents.z * centerA.z - d;
+
+    // Check if the box's center point lies on the same side of the plane as the box's vertices
+    if (distance >= 0.0f)
+    {
+        // Check if any of the box's vertices lie on the opposite side of the plane
+        if (othershape->extents.x * normal.x + othershape->extents.y * normal.y + othershape->extents.z * normal.z - d < 0.0f ||
+            othershape->extents.x * normal.x + othershape->extents.y * normal.y + othershape->extents.z * normal.z - d < 0.0f)
+        {
+            return true; // Box intersects with plane
+        }
+    }
+    return false; // Box does not intersect with plane
+}
+bool PlaneCollider::intersectsPlane(const PlaneCollider& plane) const
+{
+    // Handle box-plane intersection
+    return false;
+}
+
+bool PlaneCollider::intersectsSphere(const SphereCollider& sphere) const
+{
+    // Handle box-sphere intersection
     return false;
 }
 

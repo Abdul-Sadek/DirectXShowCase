@@ -1,5 +1,7 @@
 #pragma once
+
 #include <directxmath.h>
+
 
 class CollisionShape
 {
@@ -9,9 +11,11 @@ public:
 
     // Methods
     virtual bool intersects(const CollisionShape& other) const = 0;
+    virtual bool intersectsBox(const CollisionShape& box) const = 0;
+    virtual bool intersectsPlane(const CollisionShape& plane) const = 0;
+    virtual bool intersectsSphere(const CollisionShape& sphere) const = 0;
     virtual DirectX::XMFLOAT3 getSupportPoint(const DirectX::XMFLOAT3& direction) const = 0;
     virtual void updateTransform(const DirectX::XMFLOAT4X4& newTransform) = 0;
     virtual DirectX::XMFLOAT3 getCenter() const = 0;
     virtual float getBoundingRadius() const = 0;
 };
-

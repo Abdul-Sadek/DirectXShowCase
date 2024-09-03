@@ -66,7 +66,12 @@ void Physics::addRigidbody(RigidBody* rb)
 {
     if (std::find(rigidbodies.begin(), rigidbodies.end(), rb) == rigidbodies.end())
     {
+        IMGUI_DEBUG_LOG("Adding Rigidbody..."); // Debug logging
         rigidbodies.push_back(rb);
+    }
+    else
+    {
+        IMGUI_DEBUG_LOG("Rigidbody already in list!");
     }
 }
 

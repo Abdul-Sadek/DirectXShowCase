@@ -44,5 +44,7 @@ private:
     std::vector<Collision*> collisions;
     float airResistance;
     bool enable_collision_detection;
+
+    friend class App;
 };
 

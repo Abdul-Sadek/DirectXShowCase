@@ -1,8 +1,11 @@
 #pragma once
 
 #include "CollisionShape.h"
-#include <directxmath.h>
-class CollisionShape;
+#include "BoxCollider.h"
+#include "SphereCollider.h"
+
+class BoxCollider;
+class SphereCollider;
 
 class PlaneCollider : public CollisionShape {
 public:
@@ -13,10 +16,13 @@ public:
     // Constructor
     PlaneCollider(const DirectX::XMFLOAT3& normal, float d);
 
-    // Override methods from CollisionShape
-    bool intersects(const CollisionShape& other) const override;
-    DirectX::XMFLOAT3 getSupportPoint(const DirectX::XMFLOAT3& direction) const override;
-    void updateTransform(const DirectX::XMFLOAT4X4& newTransform) override;
-    DirectX::XMFLOAT3 getCenter() const override;
-    float getBoundingRadius() const override;
+    bool intersects(const CollisionShape& other) const;
+    bool intersectsBox(const BoxCollider& box) const;
+    bool intersectsPlane(const PlaneCollider& plane) const;
+    bool intersectsSphere(const SphereCollider& sphere) const;
+
+    DirectX::XMFLOAT3 getSupportPoint(const DirectX::XMFLOAT3& direction) const;
+    void updateTransform(const DirectX::XMFLOAT4X4& newTransform);
+    DirectX::XMFLOAT3 getCenter() const;
+    float getBoundingRadius() const;
 };

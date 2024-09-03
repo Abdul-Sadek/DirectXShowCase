@@ -298,6 +298,10 @@ void App::onCreate()
     // Physics values
     physics_engine.setGravity(gravity);
     physics_engine.setAirResistance(air_resistance);
+    physics_engine.enableCollisionDetection(true);
+    for (const auto& instance : meshInstances) {
+       // physics_engine.addRigidbody(instance.rigidbody);
+    }
     
 }
 
@@ -313,17 +317,43 @@ void App::onUpdate()
         imgui_start_menu();
     }
     if (gameStarted) {
+        // Update delta time
+        static ULONGLONG lastTime = ::GetTickCount64();
+        ULONGLONG currentTime = ::GetTickCount64();
+        float deltaTime = (currentTime - lastTime) / 1000.0f; // Convert to seconds
+        lastTime = currentTime;
         // Update Physics before rendering
-        float deltaTime = ::GetTickCount64();
         physics_engine.update(deltaTime);
         // Update mesh instance transforms based on physics results
         for (auto& instance : meshInstances)
         {
             if (instance.rigidbody)
             {
+                instance.rigidbody->setAffectedByGravity(true);
+                physics_engine.addRigidbody(instance.rigidbody);
                 // Update instance position and rotation from rigidbody
                 instance.position = instance.rigidbody->position;
                 instance.rotation = instance.rigidbody->rotation;
+            }
+        }
+        // Check and resolve collisions
+        for (size_t i = 0; i < meshInstances.size(); ++i)
+        {
+            for (size_t j = i + 1; j < meshInstances.size(); ++j)
+            {
+                RigidBody* rb1 = meshInstances[i].rigidbody;
+                RigidBody* rb2 = meshInstances[j].rigidbody;
+
+                if (rb1 && rb2)
+                {
+                    if (physics_engine.checkCollision(rb1, rb2))
+                    {
+                        Collision collision(rb1, rb2, DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+                            DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), 0.01f);
+
+                        physics_engine.resolveCollision(&collision);
+                    }
+                }
             }
         }
         physics_engine.logPhysicsState();

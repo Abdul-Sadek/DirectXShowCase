@@ -1,4 +1,5 @@
 #include "SphereCollider.h"
+#include <utility>
 
 // Check if this sphere intersects with another shape
 bool SphereCollider::intersects(const CollisionShape& other) const
@@ -19,6 +20,39 @@ bool SphereCollider::intersects(const CollisionShape& other) const
 
         return distanceSq <= (radiusSum * radiusSum);
     }
+    return false;
+}
+bool SphereCollider::intersectsBox(const BoxCollider& box) const
+{
+    const BoxCollider* othershape = dynamic_cast<const BoxCollider*>(&box);
+    // Calculate the box's center point
+    DirectX::XMFLOAT3 centerA = othershape->getCenter();
+    // Calculate the closest point on the box to the sphere's center point
+    float closestX = std::max(center.x + radius, std::min(centerA.x, center.x + radius));
+    float closestY = std::max(center.y + radius, std::min(centerA.y, center.y + radius));
+    float closestZ = std::max(center.z + radius, std::min(centerA.z, center.z + radius));
+
+    // Calculate the distance from the sphere's center point to the closest point on the box
+    float distance = sqrt((centerA.x - closestX) * (centerA.x - closestX) +
+        (centerA.y - closestY) * (centerA.y - closestY) +
+        (centerA.z - closestZ) * (centerA.z - closestZ));
+
+    // Check if the distance is less than or equal to the sphere's radius
+    if (distance <= radius)
+    {
+        return true; // Box intersects with sphere
+    }
+    return false; // Box does not intersect with sphere
+}
+bool SphereCollider::intersectsPlane(const PlaneCollider& plane) const
+{
+    // Handle box-plane intersection
+    return false;
+}
+
+bool SphereCollider::intersectsSphere(const SphereCollider& sphere) const
+{
+    // Handle box-sphere intersection
     return false;
 }
 

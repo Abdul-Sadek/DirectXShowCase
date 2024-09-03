@@ -75,11 +75,10 @@ bool Collision::isColliding() const
     if (objectA && objectB && objectA->collisionShape && objectB->collisionShape)
     {
         // Use the intersects method from the CollisionShape to determine if the objects are colliding
-        if (objectA->collisionShape->intersects(*objectB->collisionShape))
+        float penetrationDepth = objectA->collisionShape->intersects(*objectB->collisionShape);
+        if (penetrationDepth > 0.0f)
         {
-            // Assuming that if they intersect, we have a collision, and we can calculate penetration depth.
-            // For simplicity, we'll set penetrationDepth to a positive value.
-            penetrationDepth = 0.1f; // This is a placeholder, replace with an actual calculation if needed.
+            this->penetrationDepth = penetrationDepth;
             return true;
         }
     }
