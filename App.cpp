@@ -330,7 +330,7 @@ void App::onUpdate()
             if (instance.rigidbody)
             {
                 instance.rigidbody->setAffectedByGravity(true);
-                physics_engine.addRigidbody(instance.rigidbody);
+                //physics_engine.addRigidbody(instance.rigidbody);
                 // Update instance position and rotation from rigidbody
                 instance.position = instance.rigidbody->position;
                 instance.rotation = instance.rigidbody->rotation;

@@ -22,7 +22,7 @@ bool SphereCollider::intersects(const CollisionShape& other) const
     }
     return false;
 }
-bool SphereCollider::intersectsBox(const BoxCollider& box) const
+bool SphereCollider::intersectsBox(const CollisionShape& box) const
 {
     const BoxCollider* othershape = dynamic_cast<const BoxCollider*>(&box);
     // Calculate the box's center point
@@ -44,16 +44,37 @@ bool SphereCollider::intersectsBox(const BoxCollider& box) const
     }
     return false; // Box does not intersect with sphere
 }
-bool SphereCollider::intersectsPlane(const PlaneCollider& plane) const
+bool SphereCollider::intersectsPlane(const CollisionShape& plane) const
 {
-    // Handle box-plane intersection
-    return false;
+    const PlaneCollider* othershape = dynamic_cast<const PlaneCollider*>(&plane);
+    // Load the plane normal and sphere center into XMVECTORs
+    DirectX::XMVECTOR normal = DirectX::XMLoadFloat3(&othershape->normal);
+    DirectX::XMVECTOR sphereCenter = DirectX::XMLoadFloat3(&this->center);
+
+    // Calculate the distance from the sphere center to the plane
+    float distance = DirectX::XMVectorGetX(DirectX::XMVector3Dot(normal, sphereCenter)) + othershape->d;
+    distance = fabs(distance); // Absolute value of distance
+
+    // Check if the distance is less than or equal to the sphere's radius
+    return distance <= this->radius;
 }
 
-bool SphereCollider::intersectsSphere(const SphereCollider& sphere) const
+bool SphereCollider::intersectsSphere(const CollisionShape& sphere) const
 {
-    // Handle box-sphere intersection
-    return false;
+    const SphereCollider* othershape = dynamic_cast<const SphereCollider*>(&sphere);
+    // Load the sphere centers into XMVECTORs
+    DirectX::XMVECTOR centerA = DirectX::XMLoadFloat3(&this->center);
+    DirectX::XMVECTOR centerB = DirectX::XMLoadFloat3(&othershape->center);
+
+    // Calculate the squared distance between the centers
+    DirectX::XMVECTOR delta = DirectX::XMVectorSubtract(centerA, centerB);
+    float distanceSquared = DirectX::XMVectorGetX(DirectX::XMVector3LengthSq(delta));
+
+    // Calculate the sum of the radii
+    float radiiSum = this->radius + othershape->radius;
+
+    // Check if the squared distance is less than or equal to the squared radii sum
+    return distanceSquared <= (radiiSum * radiiSum);
 }
 
 // Get the farthest point on the sphere in the given direction

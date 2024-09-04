@@ -32,7 +32,7 @@ bool PlaneCollider::intersects(const CollisionShape& other) const
     return false;
 }
 
-bool PlaneCollider::intersectsBox(const BoxCollider& box) const
+bool PlaneCollider::intersectsBox(const CollisionShape& box) const
 {
     const BoxCollider* othershape = dynamic_cast<const BoxCollider*>(&box);
     // Calculate the box's center point
@@ -53,16 +53,31 @@ bool PlaneCollider::intersectsBox(const BoxCollider& box) const
     }
     return false; // Box does not intersect with plane
 }
-bool PlaneCollider::intersectsPlane(const PlaneCollider& plane) const
+bool PlaneCollider::intersectsPlane(const CollisionShape& plane) const
 {
-    // Handle box-plane intersection
-    return false;
+    const PlaneCollider* othershape = dynamic_cast<const PlaneCollider*>(&plane);
+    // Check if the normal vectors of the two planes are parallel
+    // Two vectors are parallel if the cross product is zero
+    DirectX::XMVECTOR normalA = DirectX::XMLoadFloat3(&this->normal);
+    DirectX::XMVECTOR normalB = DirectX::XMLoadFloat3(&othershape->normal);
+
+    DirectX::XMVECTOR crossProduct = DirectX::XMVector3Cross(normalA, normalB);
+    return !DirectX::XMVector3Equal(crossProduct, DirectX::XMVectorZero());
 }
 
-bool PlaneCollider::intersectsSphere(const SphereCollider& sphere) const
+bool PlaneCollider::intersectsSphere(const CollisionShape& sphere) const
 {
-    // Handle box-sphere intersection
-    return false;
+    const SphereCollider* othershape = dynamic_cast<const SphereCollider*>(&sphere);
+    // Load the plane normal and sphere center into XMVECTORs
+    DirectX::XMVECTOR normal = DirectX::XMLoadFloat3(&this->normal);
+    DirectX::XMVECTOR sphereCenter = DirectX::XMLoadFloat3(&othershape->center);
+
+    // Calculate the distance from the sphere center to the plane
+    float distance = DirectX::XMVectorGetX(DirectX::XMVector3Dot(normal, sphereCenter)) + this->d;
+    distance = fabs(distance); // Absolute value of distance
+
+    // Check if the distance is less than or equal to the sphere's radius
+    return distance <= othershape->radius;
 }
 
 // Get the farthest point on the plane in the given direction

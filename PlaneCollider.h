@@ -17,9 +17,9 @@ public:
     PlaneCollider(const DirectX::XMFLOAT3& normal, float d);
 
     bool intersects(const CollisionShape& other) const;
-    bool intersectsBox(const BoxCollider& box) const;
-    bool intersectsPlane(const PlaneCollider& plane) const;
-    bool intersectsSphere(const SphereCollider& sphere) const;
+    bool intersectsBox(const CollisionShape& box) const;
+    bool intersectsPlane(const CollisionShape& plane) const;
+    bool intersectsSphere(const CollisionShape& sphere) const;
 
     DirectX::XMFLOAT3 getSupportPoint(const DirectX::XMFLOAT3& direction) const;
     void updateTransform(const DirectX::XMFLOAT4X4& newTransform);
