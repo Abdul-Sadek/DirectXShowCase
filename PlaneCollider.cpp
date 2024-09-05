@@ -12,24 +12,7 @@ PlaneCollider::PlaneCollider(const DirectX::XMFLOAT3& normal, float d)
 // Check if this plane intersects with another shape
 bool PlaneCollider::intersects(const CollisionShape& other) const
 {
-    // Assume the basic case where we're checking for a sphere-plane intersection
-    const SphereCollider* sphere = dynamic_cast<const SphereCollider*>(&other);
-    if (sphere)
-    {
-        // Store the sphere center in a local variable
-        DirectX::XMFLOAT3 sphereCenterFloat3 = sphere->getCenter();
-        // Load the sphere center into an XMVECTOR
-        DirectX::XMVECTOR sphereCenter = DirectX::XMLoadFloat3(&sphereCenterFloat3);
-        // Calculate the distance from the sphere's center to the plane
-        DirectX::XMVECTOR planeNormal = DirectX::XMLoadFloat3(&normal);
-        float distance = DirectX::XMVectorGetX(DirectX::XMVector3Dot(planeNormal, sphereCenter)) - d;
-
-        // Check if the distance is less than or equal to the sphere's radius
-        return fabs(distance) <= sphere->getBoundingRadius();
-    }
-
-    // Additional checks for other types of CollisionShapes can be added here
-    return false;
+    return other.intersectsPlane(*this);
 }
 
 bool PlaneCollider::intersectsBox(const CollisionShape& box) const

@@ -4,23 +4,7 @@
 // Check if this sphere intersects with another shape
 bool SphereCollider::intersects(const CollisionShape& other) const
 {
-    // Assume we're only handling sphere-sphere collision for now
-    const SphereCollider* otherSphere = dynamic_cast<const SphereCollider*>(&other);
-    if (otherSphere)
-    {
-        DirectX::XMFLOAT3 centerA = getCenter();
-        DirectX::XMFLOAT3 centerB = otherSphere->getCenter();
-        DirectX::XMFLOAT3 delta;
-        delta.x = centerB.x - centerA.x;
-        delta.y = centerB.y - centerA.y;
-        delta.z = centerB.z - centerA.z;
-
-        float distanceSq = delta.x * delta.x + delta.y * delta.y + delta.z * delta.z;
-        float radiusSum = radius + otherSphere->radius;
-
-        return distanceSq <= (radiusSum * radiusSum);
-    }
-    return false;
+    return other.intersectsSphere(*this);
 }
 bool SphereCollider::intersectsBox(const CollisionShape& box) const
 {

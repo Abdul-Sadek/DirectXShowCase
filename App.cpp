@@ -255,11 +255,17 @@ void App::onCreate()
     Texture* texture1 = new Texture(L"Assets\\Textures\\house_windows.jpg", g_pd3dDevice, g_pd3dDeviceContext);
     instance1.textures.push_back(texture1);
     meshInstances.push_back(instance1);
+
     Texture* texture2 = new Texture(L"Assets\\Textures\\Time.jpg", g_pd3dDevice, g_pd3dDeviceContext);
     instance2.textures.push_back(texture2);
     meshInstances.push_back(instance2);
-    Texture* texture3 = new Texture(L"Assets\\Textures\\grass.jpg", g_pd3dDevice, g_pd3dDeviceContext);
+
+    Texture* texture3 = new Texture(L"Assets\\Textures\\brick.png", g_pd3dDevice, g_pd3dDeviceContext);
     instance3.textures.push_back(texture3);
+    Texture* texture4 = new Texture(L"Assets\\Textures\\brick_d.jpg", g_pd3dDevice, g_pd3dDeviceContext);
+    instance3.textures.push_back(texture4);
+    Texture* texture5 = new Texture(L"Assets\\Textures\\brick_n.jpg", g_pd3dDevice, g_pd3dDeviceContext);
+    instance3.textures.push_back(texture5);
     meshInstances.push_back(instance3);
 
     /*D3D11_BLEND_DESC blend_desc;
@@ -346,10 +352,27 @@ void App::onUpdate()
 
                 if (rb1 && rb2)
                 {
+                    //calculating contact points and normal
+                    DirectX::XMFLOAT3 p1 = rb1->collisionShape->getSupportPoint(DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f));
+                    DirectX::XMFLOAT3 p2 = rb2->collisionShape->getSupportPoint(DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f));
+                    DirectX::XMFLOAT3 contactNormal;
+                    contactNormal.x = p1.x - p2.x;
+                    contactNormal.y = p1.y - p2.y;
+                    contactNormal.z = p1.z - p2.z;
+                    // Normalize
+                    float length = sqrt(contactNormal.x * contactNormal.x + contactNormal.y * contactNormal.y + contactNormal.z * contactNormal.z);
+                    contactNormal.x /= length;
+                    contactNormal.y /= length;
+                    contactNormal.z /= length;
+                    //float penetrationDepth = length;  // The distance between p1 and p2
+                    DirectX::XMFLOAT3 contactPoint;
+                    contactPoint.x = (p1.x + p2.x) / 2.0f;
+                    contactPoint.y = (p1.y + p2.y) / 2.0f;
+                    contactPoint.z = (p1.z + p2.z) / 2.0f;
                     if (physics_engine.checkCollision(rb1, rb2))
                     {
-                        Collision collision(rb1, rb2, DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
-                            DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), 0.01f);
+                        Collision collision(rb1, rb2, contactPoint,
+                            contactNormal, 0.01f);
 
                         physics_engine.resolveCollision(&collision);
                     }
