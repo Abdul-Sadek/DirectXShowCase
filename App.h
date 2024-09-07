@@ -141,6 +141,7 @@ private:
 	float m_scale_z = 1.0f;
 
 	DirectX::XMFLOAT3 gravity = DirectX::XMFLOAT3(0.0f, -9.81f, 0.0f);
-	float air_resistance = 0.1f;
+	float air_resistance = 0.01f;
+	float temp_y_value = 1.0f;
 };
 

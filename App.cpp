@@ -245,7 +245,7 @@ void App::onCreate()
     MeshInstance instance3 = { new Mesh(L"Assets\\Meshes\\plane.obj", g_pd3dDevice, vsBytecode.data(), vsBytecode.size()),
                                DirectX::XMFLOAT3(0.0f, -5.0f, 0.0f),  // Position
                                DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),  // Rotation
-                               DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f),  // Scale
+                               DirectX::XMFLOAT3(2.5f, 2.5f, 2.5f),  // Scale
                                {},                                   // Textures
                                new RigidBody(1.0f, DirectX::XMFLOAT3(0.0f, -5.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
                                DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
@@ -305,9 +305,6 @@ void App::onCreate()
     physics_engine.setGravity(gravity);
     physics_engine.setAirResistance(air_resistance);
     physics_engine.enableCollisionDetection(true);
-    for (const auto& instance : meshInstances) {
-       // physics_engine.addRigidbody(instance.rigidbody);
-    }
     
 }
 
@@ -329,19 +326,20 @@ void App::onUpdate()
         float deltaTime = (currentTime - lastTime) / 1000.0f; // Convert to seconds
         lastTime = currentTime;
         // Update Physics before rendering
-        physics_engine.update(deltaTime);
+        physics_engine.update(deltaTime / 10);
         // Update mesh instance transforms based on physics results
         for (auto& instance : meshInstances)
         {
             if (instance.rigidbody)
             {
                 instance.rigidbody->setAffectedByGravity(true);
-                //physics_engine.addRigidbody(instance.rigidbody);
                 // Update instance position and rotation from rigidbody
                 instance.position = instance.rigidbody->position;
                 instance.rotation = instance.rigidbody->rotation;
             }
         }
+        //plane mesh to not move
+        meshInstances.at(2).rigidbody->setAffectedByGravity(false);
         // Check and resolve collisions
         for (size_t i = 0; i < meshInstances.size(); ++i)
         {
@@ -371,15 +369,19 @@ void App::onUpdate()
                     contactPoint.z = (p1.z + p2.z) / 2.0f;
                     if (physics_engine.checkCollision(rb1, rb2))
                     {
-                        Collision collision(rb1, rb2, contactPoint,
-                            contactNormal, 0.01f);
-
+                        Collision collision(rb1, rb2, contactPoint, contactNormal, 0.01f);
                         physics_engine.resolveCollision(&collision);
+                        //temp testing
+                        if (gravity.y >= (-9.81 / 2)) {
+                            
+                        }
+                        rb1->setPosition(DirectX::XMFLOAT3(meshInstances.at(2).position.x, temp_y_value, meshInstances.at(2).position.z));
+                        rb2->setPosition(DirectX::XMFLOAT3(meshInstances.at(2).position.x, temp_y_value, meshInstances.at(2).position.z));
                     }
                 }
             }
         }
-        physics_engine.logPhysicsState();
+        //physics_engine.logPhysicsState();
         // Rendering
         render();
         imgui_show_physics_window();
@@ -628,8 +630,8 @@ void App::imgui_show_physics_window()
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.75f, 0.69f, 0.42f, 1.0f));
     ImGui::Begin("Physics Window");
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-    ImGui::SliderFloat("Gravity",&gravity.y,-13.0f,5.0f);
-    ImGui::SliderFloat("Air Resistance", &air_resistance, 0.01f, 0.5f);
+    ImGui::SliderFloat("Gravity",&gravity.y, -10.0f, 10.0f);
+    ImGui::SliderFloat("Air Resistance", &air_resistance, 0.01f, 1.0f);
     ImGui::PopStyleColor();
     ImGui::End();
     ImGui::PopStyleColor();

@@ -53,7 +53,7 @@ void Collision::resolve()
     objectB->velocity.z += (1 / objectB->mass) * impulse.z;
 
     // Positional correction (to avoid sinking objects)
-    const float percent = 0.2f; // Usually 20% to 80%
+    const float percent = 0.5f; // Usually 20% to 80%
     const float slop = 0.01f; // Usually a small value
     float correctionMagnitude = std::max(penetrationDepth - slop, 0.0f) / ((1 / objectA->mass) + (1 / objectB->mass));
     DirectX::XMFLOAT3 correction;
