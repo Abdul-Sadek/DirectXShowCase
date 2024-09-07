@@ -44,7 +44,10 @@ private:
     std::vector<Collision*> collisions;
     float airResistance;
     bool enable_collision_detection;
+    DirectX::XMFLOAT3 contactPoint, contactNormal;
+    float penetrationDepth;
 
     friend class App;
+    friend class Collision;
 };
 

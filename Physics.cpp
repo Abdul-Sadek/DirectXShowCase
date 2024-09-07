@@ -109,7 +109,6 @@ bool Physics::checkCollision(RigidBody* rb1, RigidBody* rb2)
         //calculating contact points and normal
         DirectX::XMFLOAT3 p1 = rb1->collisionShape->getSupportPoint(DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f));
         DirectX::XMFLOAT3 p2 = rb2->collisionShape->getSupportPoint(DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f));
-        DirectX::XMFLOAT3 contactNormal;
         contactNormal.x = p1.x - p2.x;
         contactNormal.y = p1.y - p2.y;
         contactNormal.z = p1.z - p2.z;
@@ -118,13 +117,13 @@ bool Physics::checkCollision(RigidBody* rb1, RigidBody* rb2)
         contactNormal.x /= length;
         contactNormal.y /= length;
         contactNormal.z /= length;
-        //float penetrationDepth = length;  // The distance between p1 and p2
-        DirectX::XMFLOAT3 contactPoint;
+        penetrationDepth = length;  // The distance between p1 and p2
+        contactPoint;
         contactPoint.x = (p1.x + p2.x) / 2.0f;
         contactPoint.y = (p1.y + p2.y) / 2.0f;
         contactPoint.z = (p1.z + p2.z) / 2.0f;
         // Create a temporary collision object to test for intersection
-        Collision collision(rb1, rb2, contactPoint, contactNormal, 0.01f);
+        Collision collision(rb1, rb2, contactPoint, contactNormal, penetrationDepth);
         return collision.isColliding();
     }
     // If either rigid body or their collision shapes are null, return false
@@ -135,7 +134,7 @@ void Physics::resolveCollision(Collision* collision)
 {
     // Implement collision resolution logic
     // This is a placeholder and should be replaced with your actual collision resolution code.
-    collision->resolve();
+    collision->resolve(contactPoint, contactNormal, penetrationDepth);
 }
 
 void Physics::setGravity(const DirectX::XMFLOAT3& newGravity)

@@ -24,7 +24,7 @@ public:
         float penetrationDepth);
 
     // Methods
-    void resolve();
+    void resolve(DirectX::XMFLOAT3& contactPoint, DirectX::XMFLOAT3& contactNormal, float& penetrationDepth);
     bool isColliding() const;
     DirectX::XMFLOAT3 getContactPoint() const;
     DirectX::XMFLOAT3 getContactNormal() const;

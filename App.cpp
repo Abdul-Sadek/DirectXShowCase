@@ -225,8 +225,8 @@ void App::onCreate()
                                DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),  // Rotation
                                DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f),  // Scale
                                {},                                   // Textures
-                               new RigidBody(1.0f, DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
-                               DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
+                               new RigidBody(1.0f, DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f),
+                               DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f),
                                DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f),
                                new BoxCollider(DirectX::XMFLOAT3(1.0f,1.0f,1.0f)))
     };
@@ -305,6 +305,7 @@ void App::onCreate()
     physics_engine.setGravity(gravity);
     physics_engine.setAirResistance(air_resistance);
     physics_engine.enableCollisionDetection(true);
+    physics_engine.applyGravity();
     
 }
 
@@ -326,7 +327,7 @@ void App::onUpdate()
         float deltaTime = (currentTime - lastTime) / 1000.0f; // Convert to seconds
         lastTime = currentTime;
         // Update Physics before rendering
-        physics_engine.update(deltaTime / 10);
+        physics_engine.update(deltaTime);
         // Update mesh instance transforms based on physics results
         for (auto& instance : meshInstances)
         {
@@ -341,42 +342,64 @@ void App::onUpdate()
         //plane mesh to not move
         meshInstances.at(2).rigidbody->setAffectedByGravity(false);
         // Check and resolve collisions
-        for (size_t i = 0; i < meshInstances.size(); ++i)
+        for (size_t i = 0; i < meshInstances.size() - 1; ++i)
         {
-            for (size_t j = i + 1; j < meshInstances.size(); ++j)
+            for (size_t j = i + 1; j < meshInstances.size() - 1; ++j)
             {
                 RigidBody* rb1 = meshInstances[i].rigidbody;
                 RigidBody* rb2 = meshInstances[j].rigidbody;
 
                 if (rb1 && rb2)
                 {
-                    //calculating contact points and normal
-                    DirectX::XMFLOAT3 p1 = rb1->collisionShape->getSupportPoint(DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f));
-                    DirectX::XMFLOAT3 p2 = rb2->collisionShape->getSupportPoint(DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f));
-                    DirectX::XMFLOAT3 contactNormal;
-                    contactNormal.x = p1.x - p2.x;
-                    contactNormal.y = p1.y - p2.y;
-                    contactNormal.z = p1.z - p2.z;
-                    // Normalize
-                    float length = sqrt(contactNormal.x * contactNormal.x + contactNormal.y * contactNormal.y + contactNormal.z * contactNormal.z);
-                    contactNormal.x /= length;
-                    contactNormal.y /= length;
-                    contactNormal.z /= length;
-                    //float penetrationDepth = length;  // The distance between p1 and p2
-                    DirectX::XMFLOAT3 contactPoint;
-                    contactPoint.x = (p1.x + p2.x) / 2.0f;
-                    contactPoint.y = (p1.y + p2.y) / 2.0f;
-                    contactPoint.z = (p1.z + p2.z) / 2.0f;
-                    if (physics_engine.checkCollision(rb1, rb2))
+                    rb1->update(deltaTime, air_resistance);
+                    rb2->update(deltaTime, air_resistance);
+                    rb1->applyForce(DirectX::XMFLOAT3(0.0f, -2.0f, 0.0f));
+                    rb2->applyForce(DirectX::XMFLOAT3(0.0f, -2.0f, 0.0f));
+                    if (meshInstances[i].position.x < -5.0f || meshInstances[i].position.y < -5.0f
+                        || meshInstances[i].position.z < -5.0f || meshInstances[i].position.x > 5.0f
+                        || meshInstances[i].position.y > 5.0f || meshInstances[i].position.z > 5.0f) {
+                        meshInstances[i].position = meshInstances.at(2).position;
+                        meshInstances[i].position.y = 1.0f;
+                    }
+                    if (meshInstances[j].position.x < -5.0f || meshInstances[j].position.y < -5.0f
+                        || meshInstances[j].position.z < -5.0f || meshInstances[j].position.x > 5.0f
+                        || meshInstances[j].position.y > 5.0f || meshInstances[j].position.z > 5.0f) {
+                        meshInstances[j].position = meshInstances.at(2).position;
+                        meshInstances[j].position.y = 2.0f;
+                    }
+                    if (physics_engine.checkCollision(rb1, meshInstances.at(2).rigidbody))
                     {
-                        Collision collision(rb1, rb2, contactPoint, contactNormal, 0.01f);
+                        IMGUI_DEBUG_LOG("collision between object and plane");
+                        Collision collision(rb1, meshInstances.at(2).rigidbody, DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), 0.01f);
                         physics_engine.resolveCollision(&collision);
                         //temp testing
-                        if (gravity.y >= (-9.81 / 2)) {
-                            
+                        if (meshInstances[i].position.y < -5.0f) {
+                            meshInstances[i].position = meshInstances.at(2).position;
+
                         }
-                        rb1->setPosition(DirectX::XMFLOAT3(meshInstances.at(2).position.x, temp_y_value, meshInstances.at(2).position.z));
-                        rb2->setPosition(DirectX::XMFLOAT3(meshInstances.at(2).position.x, temp_y_value, meshInstances.at(2).position.z));
+                        if (meshInstances[j].position.y < -5.0f) {
+                            meshInstances[j].position = meshInstances.at(2).position;
+                        }
+                    }
+                    if (physics_engine.checkCollision(rb2, meshInstances.at(2).rigidbody)) {
+                        IMGUI_DEBUG_LOG("collision between object and plane");
+                        Collision collision(rb2, meshInstances.at(2).rigidbody, DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), 0.01f);
+                        physics_engine.resolveCollision(&collision);
+                        //temp testing
+                        if (meshInstances[i].position.y < -5.0f) {
+                            meshInstances[i].position = meshInstances.at(2).position;
+
+                        }
+                        if (meshInstances[j].position.y < -5.0f) {
+                            meshInstances[j].position = meshInstances.at(2).position;
+                        }
+                    }
+                    if (physics_engine.checkCollision(rb1, rb2)) {
+                        //Collision collision(rb1, rb2, DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), 0.01f);
+                        //physics_engine.resolveCollision(&collision);
+                    }
+                    if (!physics_engine.checkCollision(rb1, rb2)) {
+                        IMGUI_DEBUG_LOG("no collision!");
                     }
                 }
             }
